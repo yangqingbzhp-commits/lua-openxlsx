@@ -14,7 +14,7 @@ namespace {
 // module-level utility functions
 // ============================================================================
 int l_version(lua_State *L) {
-    push_string(L, "lua-openxlsx 0.1.0 (OpenXLSX 0.5.1)");
+    push_string(L, "lua-openxlsx 0.1.1 (OpenXLSX 0.5.1)");
     return 1;
 }
 

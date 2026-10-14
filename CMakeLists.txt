@@ -57,6 +57,7 @@ if(OX_LINK_LUA AND NOT LUA_LIBRARY)
     find_library(LUA_LIBRARY
         NAMES lua55 lua5.5 lua54 lua5.4 lua53 lua5.3 lua lua55.dll lua54.dll liblua
         HINTS
+            "${LUA_INCLUDE_DIR}/../lib"
             /usr/local/lib /usr/lib /opt/homebrew/lib /usr/local/opt/lua/lib
             "$ENV{USERPROFILE}/lua" "$ENV{HOME}/.local/lib"
     )
