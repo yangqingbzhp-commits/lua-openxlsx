@@ -1,0 +1,16 @@
+# 跨平台换行符与二进制文件处理
+* text=auto eol=lf
+*.sh  text eol=lf
+*.lua text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制
+*.dll  binary
+*.so   binary
+*.a    binary
+*.lib  binary
+*.exe  binary
+*.xlsx binary
+*.zip  binary
+*.gz   binary
