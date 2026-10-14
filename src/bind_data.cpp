@@ -333,7 +333,7 @@ const luaL_Reg formula_methods[] = {
 // ============================================================================
 int cellvalue_new(lua_State *L) {
     OX_TRY
-    push<XLCellValue>(L, MT_CELLVALUE, check_cellvalue(L, 1));
+    push<XLCellValue>(L, MT_CELLVALUE, check_cellvalue(L, 1));  // no argument -> Empty
     return 1;
     OX_CATCH_ALL
 }

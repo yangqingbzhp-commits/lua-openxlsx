@@ -1,0 +1,15 @@
+lua-openxlsx 覆盖度审计（对照上游公开头文件清单 docs/api_inventory.txt）
+==============================================================================
+公开头文件中的类:            62
+直接绑定:                    59  (677 个成员位于其类中)
+功能等价暴露（proxy/别名）:  3
+    - XLFormulaProxy       ( 5 members): 通过 cell.formula / cell:get_formula 暴露其功能
+    - XLProperties         ( 6 members): 通过 doc:property / doc:set_property 访问
+    - XLAppProperties      (17 members): 通过 doc:property / doc:set_property 访问
+未覆盖:                      0
+
+说明：
+- 异常类（XLException 及子类）不在类清单中单列: 由绑定层统一捕获并转换为
+  Lua error（见 src/lua_bind.hpp 的 OX_CATCH_ALL），类名保留在错误消息前缀。
+- XLUnsupportedElement 相关成员（colorScale/dataBar/iconSet/extLst）上游未实现。
+- print(ostream) 类成员无法映射到 Lua 语义，未暴露。

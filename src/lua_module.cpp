@@ -221,6 +221,7 @@ void bind_sheet(lua_State *L);
 void bind_data(lua_State *L);
 void bind_styles(lua_State *L);
 void bind_p4(lua_State *L);
+void bind_p5(lua_State *L);
 
 }  // namespace ox
 
@@ -233,6 +234,7 @@ extern "C" int luaopen_openxlsx(lua_State *L) {
     ox::bind_data(L);      // cells, values, references, rows, columns, ranges, ...
     ox::bind_styles(L);    // XLStyles family
     ox::bind_p4(L);        // comments, tables, drawings, relationships
+    ox::bind_p5(L);        // equality helpers, variant(), path helpers, saving declaration
 
     // module-level functions
     lua_pushcfunction(L, l_version);

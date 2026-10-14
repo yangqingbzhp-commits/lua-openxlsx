@@ -156,7 +156,11 @@ lua-openxlsx/
 
 ## 覆盖状态
 
-见 [docs/API_COVERAGE.md](docs/API_COVERAGE.md)。核心读写、样式（XLStyles 全家）、批注/表格/VML/关系（P4）均已完成；剩余为少量工具方法与覆盖度核对（P5）。
+**全部完成**：核心读写、样式（XLStyles 全家）、批注/表格/VML/关系、收尾工具（P5）。
+覆盖度审计：公开头文件 62 个类 → 59 个直接绑定 + 3 个功能等价暴露，**0 缺失**
+（详见 [docs/API_COVERAGE.md](docs/API_COVERAGE.md) 与 `docs/coverage_audit.txt`）。
+
+测试规模：7 个测试文件、**320 项断言**，另含 LibreOffice 独立回读校验与生成文件的 XML 结构校验。
 
 ## 许可
 

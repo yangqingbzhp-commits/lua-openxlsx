@@ -70,6 +70,8 @@ OX_OBJECT_TYPE(OpenXLSX::XLDataBarColor, MT_DATA_BAR_COLOR)
 // XLDrawing.hpp
 OX_OBJECT_TYPE(OpenXLSX::XLShapeStyle, MT_SHAPE_STYLE)
 OX_OBJECT_TYPE(OpenXLSX::XLShapeClientData, MT_SHAPE_CLIENT_DATA)
+// P5
+OX_OBJECT_TYPE(OpenXLSX::XLXmlSavingDeclaration, MT_XML_SAVING_DECLARATION)
 #undef OX_OBJECT_TYPE
 
 // ---------------------------------------------------------------------------
@@ -356,13 +358,23 @@ inline void set_len_metamethod(lua_State *L, const char *tname, lua_CFunction fn
     lua_pop(L, 1);
 }
 
-/** Adds plain methods to a style type's methods table (__index closure upvalue 1). */
+/**
+ * Adds plain methods to an existing type's method table. Handles both layouts:
+ * __index as a plain table, and __index as a closure with the methods table as
+ * upvalue 1.
+ */
 inline void add_style_methods(lua_State *L, const char *tname, const luaL_Reg *methods) {
+    const int top = lua_gettop(L);
     luaL_getmetatable(L, tname);
-    lua_getfield(L, -1, "__index");   // index closure
-    lua_getupvalue(L, -1, 1);         // methods table
-    luaL_setfuncs(L, methods, 0);
-    lua_pop(L, 3);
+    lua_getfield(L, -1, "__index");
+    if (lua_isfunction(L, -1)) {
+        if (lua_getupvalue(L, -1, 1) != nullptr) {
+            luaL_setfuncs(L, methods, 0);   // methods table on top
+        }
+    } else if (lua_istable(L, -1)) {
+        luaL_setfuncs(L, methods, 0);       // plain index table on top
+    }
+    lua_settop(L, top);
 }
 
 }  // namespace ox

@@ -84,6 +84,9 @@ inline constexpr const char *MT_SHAPE_CLIENT_DATA   = "openxlsx.shape_client_dat
 inline constexpr const char *MT_RELATIONSHIPS       = "openxlsx.relationships";
 inline constexpr const char *MT_RELATIONSHIP_ITEM   = "openxlsx.relationship_item";
 
+// P5 helpers
+inline constexpr const char *MT_XML_SAVING_DECLARATION = "openxlsx.xml_saving_declaration";
+
 // ============================================================================
 // Error translation
 // ============================================================================
@@ -528,9 +531,10 @@ inline void push_cellvalue_proxy(lua_State *L, const OpenXLSX::XLCellValueProxy 
     }
 }
 
-/** Converts the Lua value at idx to an XLCellValue (nil -> Empty). */
+/** Converts the Lua value at idx to an XLCellValue (nil/absent -> Empty). */
 inline OpenXLSX::XLCellValue check_cellvalue(lua_State *L, int idx) {
     switch (lua_type(L, idx)) {
+        case LUA_TNONE:
         case LUA_TNIL:
             return OpenXLSX::XLCellValue{};
         case LUA_TBOOLEAN:

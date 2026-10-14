@@ -214,12 +214,38 @@ Lua 侧命名规则：C++ `camelCase` → Lua `snake_case`；枚举值进对应�
 - `XLShapeStyle` **不可拷贝**（unique_ptr 成员），绑定层用 C++17 保证的原地构造；`shape:style()` 返回的样式对象**与形状的 XML 联动**（`show()/hide()`、setter 直接写回形状），而 `xlsx.shape_style(str)` 构造的是独立对象，可用于 `shape:set_style(obj)`。
 - VML 形状计数是**每个对象私有**的（XML 共享）：`XLComments` 内部还持有一份自己的 VML drawing 副本。索引类操作（`shape(i)`/`delete_shape(i)`）请使用同一个对象，或从文档新建对象（`doc:sheet_vml_drawing(id)` 会重新扫描 XML）。
 
-## 待完成（后续阶段）
+## 收尾工具（P5 ✅）
 
-| 项 | 计划 |
+| 项 | Lua | 说明 |
+|---|---|---|
+| 单元格比较 | `cell:equals(other)` | 上游 `operator==` |
+| 行比较 | `row:equals(other)` | 上游 `operator==` |
+| 值变体 | `value:variant()` | 返回 `{type=<数值>, value=<原生值>}`（对应 `getVariant()`） |
+| 路径工具 | `xlsx.path_relative_to(a, b)`、`xlsx.normalize_path(p)` | `getPathARelativeToPathB`、`eliminateDotAndDotDotFromPath` |
+| XML 保存声明 | `xlsx.saving_declaration([version, encoding[, standalone]])`、`doc:set_saving_declaration(d)` | 属性 `version/encoding/standalone/standalone_as_bool`；影响保存后 XML 的 `<?xml ... standalone="yes"?>` |
+| （P0 起已提供） | `xlsx.binary_as_hex_string`、`xlsx.excel_password_hash(_string)` | 上游全局工具 |
+
+## 覆盖度审计（最终）
+
+`tools/api_inventory.py` 从上游公开头文件提取清单，`docs/coverage_audit.txt` 为审计报告：
+
+- 公开头文件中的类：**62**
+- 直接绑定：**59**（其类中共 677 个公开成员）
+- 功能等价暴露：**3** —— `XLFormulaProxy`（经 `cell.formula`）、`XLProperties` / `XLAppProperties`（经 `doc:property`）
+- 未覆盖：**0**
+
+统一不直接暴露的内容（有明确理由）：
+
+| 项 | 原因 |
 |---|---|
-| `cell:equals` / `row:equals`、`value:variant()`、`xlsx.path_relative_to` / `normalize_path` | **P5** |
-| 覆盖度自动核对（`tools/api_inventory.py` 生成 → 与本清单比对） | **P5** |
+| 异常类（`XLException` 及 9 个子类） | 绑定层统一捕获并转成 Lua error，类名保留在错误前缀（如 `XLInputError: ...`） |
+| `print(std::ostream&)` 全部成员 | C++ 流调试输出，无 Lua 语义 |
+| `XLUnsupportedElement` 相关（`colorScale/dataBar/iconSet/extLst`） | 上游本身未实现 |
+| `XLSharedStrings`、`XLXmlData/XLXmlFile`、`XLContentTypes`、`XLCommandQuery`、`IZipArchive`、`headers/detail/*` | 库内部基础设施；需要的能力经公开 API 暴露（`cleanup_shared_strings`、`zip_library_name`、`exec*` 对应的专用方法等） |
+| `XLZipArchive`（公开构造） | 导出仅提供 `zip_library_name/version` |
+| `XLSheet` 的 `print` / `XLChartsheet` 功能 | 上游占位实现 |
+
+**总测试规模：7 个测试文件、320 项断言，外加 LibreOffice CSV 独立回读与会话中多次 XML 结构校验。**
 
 ## 无法映射/不暴露的项（汇总）
 
