@@ -7,6 +7,17 @@
 - 形态： 原生 C++ 模块 `openxlsx.so`，`require("openxlsx")` 直接使用
 - 安装： 无 root，默认装到 `~/.local/lib/lua/5.5/`
 
+## 平台支持
+
+| | Linux | macOS | Windows (MinGW-w64) |
+|---|---|---|---|
+| 状态 | ✅ 本机全量测试通过 | ⚠️ 支持（CI 验证；本机无 mac） | ⚠️ 支持（交叉编译已验证产出 dll；运行需真机/CI） |
+| 模块 | `openxlsx.so` | `openxlsx.so` | `openxlsx.dll` |
+| 特殊点 | 解释器提供 Lua 符号 | `-undefined dynamic_lookup`（已自动处理） | **必须链接 Lua 导入库**（`OX_LINK_LUA=ON`，默认） |
+
+构建方法、交叉编译（Linux→Windows）、MSVC 说明与 CI 工作流详见
+[docs/CROSS_PLATFORM.md](docs/CROSS_PLATFORM.md)。
+
 ## 快速开始
 
 ```bash
@@ -140,17 +151,23 @@ end
 
 ```
 lua-openxlsx/
-├── scripts/bootstrap.sh        # 拉取并构建 OpenXLSX -> .deps/
-├── scripts/run_tests.sh        # 跑全部 Lua 测试 + LibreOffice 校验
+├── scripts/bootstrap.sh        # 拉取并构建 OpenXLSX -> .deps/（跨平台）
+├── scripts/run_tests.sh        # 跑全部 Lua 测试 + LibreOffice 校验（跨平台）
+├── cmake/mingw-w64-x86_64.cmake # Linux→Windows 交叉编译 toolchain
+├── .github/workflows/ci.yml    # 三平台 CI（Linux/macOS/Windows）
 ├── src/                        # 绑定实现（C++）
 │   ├── lua_bind.hpp            # 绑定基础设施（Box/令牌/校验/类型转换）
+│   ├── style_machinery.hpp     # 通用属性/方法绑定机制（样式类复用）
 │   ├── lua_module.cpp          # 模块入口、常量表、工具函数
 │   ├── bind_document.cpp       # XLDocument / XLWorkbook / XLSheet
 │   ├── bind_sheet.cpp          # XLWorksheet / 条件格式
-│   └── bind_data.cpp           # 单元格/值/引用/行列/区域/迭代器/合并
-├── test/                       # Lua 测试
+│   ├── bind_data.cpp           # 单元格/值/引用/行列/区域/迭代器/合并
+│   ├── bind_styles.cpp         # XLStyles 全家
+│   ├── bind_p4.cpp             # 批注/表格/VML/关系
+│   └── bind_p5.cpp             # equals/variant/路径/保存声明
+├── test/                       # Lua 测试（testutil.lua 提供跨平台工具）
 ├── tools/api_inventory.py      # 从头文件生成 API 清单（覆盖度核对用）
-├── docs/API_COVERAGE.md        # API 覆盖清单
+├── docs/                       # API 覆盖清单、审计报告、跨平台说明
 └── third_party/ .deps/         # 由 bootstrap.sh 生成（不纳入版本管理）
 ```
 

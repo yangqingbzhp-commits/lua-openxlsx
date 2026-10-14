@@ -201,6 +201,7 @@ inline int style_get(lua_State *L) {
 
 template <typename C, auto Setter, std::size_t... I>
 auto call_style_setter(lua_State *L, C *obj, std::index_sequence<I...>) {
+    (void)L;  // unused for zero-argument setters
     using Args = typename mem_fn_args<Setter>::args;
     return (obj->*Setter)(check_style_arg<std::tuple_element_t<I, Args>>(L, 2 + int(I))...);
 }

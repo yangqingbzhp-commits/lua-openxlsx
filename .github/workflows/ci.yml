@@ -1,0 +1,94 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  LUA_VERSION: "5.5.1"
+
+jobs:
+  linux:
+    name: Linux (gcc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build git curl
+      - name: Build and install Lua ${{ env.LUA_VERSION }}
+        run: |
+          curl -fsSLO "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          mkdir -p third_party
+          tar xf "lua-${LUA_VERSION}.tar.gz" -C third_party
+          make -C "third_party/lua-${LUA_VERSION}/src" posix MYLIBS="-Wl,-E -ldl"
+          sudo make -C "third_party/lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
+      - name: Build OpenXLSX dependencies
+        run: scripts/bootstrap.sh
+      - name: Build module
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+      - name: Run tests
+        run: scripts/run_tests.sh
+
+  macos:
+    name: macOS (clang)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: brew install cmake ninja || true
+      - name: Build and install Lua ${{ env.LUA_VERSION }}
+        run: |
+          curl -fsSLO "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          mkdir -p third_party
+          tar xf "lua-${LUA_VERSION}.tar.gz" -C third_party
+          make -C "third_party/lua-${LUA_VERSION}/src" macosx
+          sudo make -C "third_party/lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
+      - name: Build OpenXLSX dependencies
+        run: scripts/bootstrap.sh
+      - name: Build module
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+      - name: Run tests
+        run: scripts/run_tests.sh
+
+  windows:
+    name: Windows (MinGW-w64)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-git
+            mingw-w64-x86_64-make
+      - name: Build Lua ${{ env.LUA_VERSION }} for Windows
+        run: |
+          curl -fsSLO "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
+          mkdir -p third_party
+          tar xf "lua-${LUA_VERSION}.tar.gz" -C third_party
+          make -C "third_party/lua-${LUA_VERSION}/src" mingw CC=gcc RANLIB=ranlib
+          echo "$PWD/third_party/lua-${LUA_VERSION}/src" >> "$GITHUB_PATH"
+      - name: Build OpenXLSX dependencies
+        run: scripts/bootstrap.sh
+      - name: Build module (links the Lua DLL - required on Windows)
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+                -DLUA_INCLUDE_DIR="$PWD/third_party/lua-${LUA_VERSION}/src" \
+                -DLUA_LIBRARY="$PWD/third_party/lua-${LUA_VERSION}/src/lua55.dll"
+          cmake --build build
+      - name: Run tests
+        run: scripts/run_tests.sh

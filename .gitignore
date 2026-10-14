@@ -5,6 +5,7 @@ build-*/
 # dependencies fetched by scripts/bootstrap.sh
 third_party/
 .deps/
+.deps-*/
 .cache/
 # editor/OS noise
 *.o

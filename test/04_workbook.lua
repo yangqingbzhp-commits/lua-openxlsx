@@ -1,8 +1,11 @@
 -- test/04_workbook.lua — workbook / sheet management, protection, conditional formats
 local xlsx = require("openxlsx")
 
+local testdir = os.getenv("OX_TEST_DIR") or "test"
+local util = dofile(testdir .. "/testutil.lua")
+
 local outdir = os.getenv("OX_TEST_OUT") or "/tmp/opencode/openxlsx-tests"
-os.execute("mkdir -p '" .. outdir .. "'")
+util.makedirs(outdir)
 
 local checks = 0
 local function eq(a, b, what)

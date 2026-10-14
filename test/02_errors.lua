@@ -1,6 +1,9 @@
 -- test/02_errors.lua — input validation and error reporting
 local xlsx = require("openxlsx")
 
+local testdir = os.getenv("OX_TEST_DIR") or "test"
+local util = dofile(testdir .. "/testutil.lua")
+
 local checks = 0
 local function fails(fn, pattern, what)
     checks = checks + 1

@@ -2,8 +2,11 @@
 -- Run: LUA_CPATH="<build>/?.so;;" lua test/01_smoke.lua
 local xlsx = require("openxlsx")
 
+local testdir = os.getenv("OX_TEST_DIR") or "test"
+local util = dofile(testdir .. "/testutil.lua")
+
 local outdir = os.getenv("OX_TEST_OUT") or "/tmp/opencode/openxlsx-tests"
-os.execute("mkdir -p '" .. outdir .. "'")
+util.makedirs(outdir)
 
 local path = outdir .. "/smoke.xlsx"
 os.remove(path)

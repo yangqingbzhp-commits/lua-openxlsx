@@ -2,8 +2,11 @@
 --                    XML saving declaration
 local xlsx = require("openxlsx")
 
+local testdir = os.getenv("OX_TEST_DIR") or "test"
+local util = dofile(testdir .. "/testutil.lua")
+
 local outdir = os.getenv("OX_TEST_OUT") or "/tmp/opencode/openxlsx-tests"
-os.execute("mkdir -p '" .. outdir .. "'")
+util.makedirs(outdir)
 local path = outdir .. "/misc.xlsx"
 os.remove(path)
 
@@ -77,14 +80,11 @@ doc:close()
 
 -- verify the saving declaration took effect in the produced XML -------------------------
 local unzip_dir = outdir .. "/misc_x"
-os.execute("rm -rf '" .. unzip_dir .. "' && mkdir -p '" .. unzip_dir .. "'")
-os.execute("cd '" .. unzip_dir .. "' && unzip -o -q '../misc.xlsx'")
+util.rmtree(unzip_dir)
+util.extract_zip(path, unzip_dir)
 
 local function first_line(file)
-    local f = assert(io.open(unzip_dir .. "/" .. file, "r"))
-    local line = f:read("*l")
-    f:close()
-    return line or ""
+    return util.read_first_line(unzip_dir .. "/" .. file) or ""
 end
 
 truthy(first_line("xl/workbook.xml"):find('standalone="yes"') ~= nil, "workbook.xml has standalone=yes")
