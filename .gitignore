@@ -15,3 +15,6 @@ third_party/
 
 # prebuilt Windows test kit (regenerate: scripts/make_windows_kit.sh)
 dist/
+
+# LuaRocks build dir
+build.luarocks/

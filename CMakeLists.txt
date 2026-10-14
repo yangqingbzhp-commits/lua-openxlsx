@@ -13,10 +13,14 @@ endif()
 # Lua
 #
 # Only the headers are needed on Linux/macOS: the module leaves the Lua symbols
-# undefined and the host interpreter provides them (thin host = classic Lua
-# module setup). Windows DLLs cannot have unresolved symbols, so there the Lua
-# library is linked (OX_LINK_LUA defaults to ON on Windows).
+# undefined and the host interpreter provides them (classic Lua module setup).
+# Windows DLLs cannot have unresolved symbols, so there the Lua library is
+# linked (OX_LINK_LUA defaults to ON on Windows).
+# LuaRocks passes LUA_INCDIR / LUA_LIBDIR - accepted as fallbacks here.
 # ---------------------------------------------------------------------------
+if(NOT LUA_INCLUDE_DIR AND DEFINED LUA_INCDIR AND NOT "${LUA_INCDIR}" STREQUAL "")
+    set(LUA_INCLUDE_DIR "${LUA_INCDIR}")
+endif()
 if(NOT LUA_INCLUDE_DIR)
     find_path(LUA_INCLUDE_DIR lua.h
         HINTS
@@ -36,9 +40,22 @@ else()
 endif()
 option(OX_LINK_LUA "Link the Lua library into the module (required on Windows)" ${_ox_link_lua_default})
 
+if(OX_LINK_LUA AND NOT LUA_LIBRARY AND DEFINED LUA_LIBDIR AND NOT "${LUA_LIBDIR}" STREQUAL "")
+    find_library(LUA_LIBRARY
+        NAMES lua55 lua5.5 lua54 lua5.4 lua53 lua5.3 lua lua55.dll lua54.dll liblua
+        HINTS "${LUA_LIBDIR}"
+        NO_DEFAULT_PATH
+    )
+    if(NOT LUA_LIBRARY)
+        find_library(LUA_LIBRARY
+            NAMES lua55 lua5.5 lua54 lua5.4 lua53 lua5.3 lua liblua
+            HINTS "${LUA_LIBDIR}"
+        )
+    endif()
+endif()
 if(OX_LINK_LUA AND NOT LUA_LIBRARY)
     find_library(LUA_LIBRARY
-        NAMES lua55 lua5.5 lua54 lua5.4 lua53 lua5.3 lua lua55.dll lua54.dll
+        NAMES lua55 lua5.5 lua54 lua5.4 lua53 lua5.3 lua lua55.dll lua54.dll liblua
         HINTS
             /usr/local/lib /usr/lib /opt/homebrew/lib /usr/local/opt/lua/lib
             "$ENV{USERPROFILE}/lua" "$ENV{HOME}/.local/lib"
@@ -49,11 +66,38 @@ if(OX_LINK_LUA AND NOT LUA_LIBRARY)
 endif()
 
 # ---------------------------------------------------------------------------
-# OpenXLSX (built by scripts/bootstrap.sh into .deps/)
+# OpenXLSX
+#
+# Preferred: a locally built copy (scripts/bootstrap.sh -> .deps/).
+# Fallback: OX_FETCH_OPENXLSX=ON fetches and builds OpenXLSX in-tree (used by
+# the LuaRocks rockspec so that `luarocks install` works standalone).
 # ---------------------------------------------------------------------------
 set(OX_DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.deps" CACHE PATH "Prefix of the OpenXLSX dependency build")
 list(APPEND CMAKE_PREFIX_PATH "${OX_DEPS_DIR}")
-find_package(OpenXLSX CONFIG REQUIRED)
+
+option(OX_FETCH_OPENXLSX "Fetch and build OpenXLSX (incl. pugixml/miniz) when not found locally" OFF)
+
+find_package(OpenXLSX CONFIG QUIET)
+if(NOT OpenXLSX_FOUND)
+    if(OX_FETCH_OPENXLSX)
+        message(STATUS "lua-openxlsx: OpenXLSX not found locally - fetching v0.5.1 from Codeberg")
+        include(FetchContent)
+        set(OPENXLSX_CREATE_DOCS OFF CACHE BOOL "" FORCE)
+        set(OPENXLSX_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+        set(OPENXLSX_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(OPENXLSX_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE)
+        set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)  # miniz declares < 3.5
+        FetchContent_Declare(OpenXLSX
+            GIT_REPOSITORY https://codeberg.org/lars_uffmann/OpenXLSX.git
+            GIT_TAG v0.5.1
+            GIT_SHALLOW TRUE
+        )
+        FetchContent_MakeAvailable(OpenXLSX)
+    else()
+        message(FATAL_ERROR
+            "OpenXLSX not found - run scripts/bootstrap.sh first, or configure with -DOX_FETCH_OPENXLSX=ON")
+    endif()
+endif()
 
 # ---------------------------------------------------------------------------
 # The module
@@ -96,6 +140,16 @@ else()
     set(_ox_module_suffix ".so")
     set(_ox_module_name "openxlsx.so")
 endif()
+
+# Absolute destination override (e.g. LuaRocks' $(LIBDIR)); otherwise the
+# standard <prefix>/lib/lua/<abi> layout is used.
+set(OX_LUA_MODULE_DIR "" CACHE PATH "Absolute destination directory for the module (overrides lib/lua/<abi>)")
+if(OX_LUA_MODULE_DIR)
+    set(_ox_install_dest "${OX_LUA_MODULE_DIR}")
+else()
+    set(_ox_install_dest "lib/lua/${OX_LUA_ABI}")
+endif()
+
 set_target_properties(openxlsx PROPERTIES
     PREFIX ""
     OUTPUT_NAME "openxlsx"
@@ -118,15 +172,17 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${_ox_default_prefix}" CACHE PATH "Install prefix" FORCE)
 endif()
 
-install(TARGETS openxlsx LIBRARY DESTINATION "lib/lua/${OX_LUA_ABI}"
-                       RUNTIME DESTINATION "lib/lua/${OX_LUA_ABI}")
+install(TARGETS openxlsx
+        LIBRARY DESTINATION "${_ox_install_dest}" COMPONENT ox-module
+        RUNTIME DESTINATION "${_ox_install_dest}" COMPONENT ox-module)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lua/openxlsx/init.lua")
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/openxlsx/init.lua"
-            DESTINATION "share/lua/${OX_LUA_ABI}/openxlsx")
+            DESTINATION "share/lua/${OX_LUA_ABI}/openxlsx"
+            COMPONENT ox-module)
 endif()
 
 # Helpful summary
 message(STATUS "lua-openxlsx: Lua headers  = ${LUA_INCLUDE_DIR}")
 message(STATUS "lua-openxlsx: link Lua     = ${OX_LINK_LUA}${LUA_LIBRARY}")
 message(STATUS "lua-openxlsx: install prefix = ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "lua-openxlsx: install path   = lib/lua/${OX_LUA_ABI}/${_ox_module_name}")
+message(STATUS "lua-openxlsx: install path   = ${_ox_install_dest}/${_ox_module_name}")
