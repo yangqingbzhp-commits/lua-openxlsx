@@ -34,12 +34,23 @@ if [ ! -f "$MODULE" ]; then
 fi
 export OX_MODULE_PATH="$MODULE"
 
+# On MSYS2/Git-Bash, Lua (a native Windows program) needs Windows-style paths.
+BUILD_LUA="$BUILD"
+if command -v cygpath >/dev/null 2>&1; then
+    BUILD_LUA="$(cygpath -m "$BUILD")"
+fi
+
 export OX_TEST_OUT="${OX_TEST_OUT:-${TMPDIR:-/tmp}/openxlsx-tests}"
 export OX_TEST_DIR="$ROOT/test"
+if command -v cygpath >/dev/null 2>&1; then
+    OX_TEST_OUT="$(cygpath -m "$OX_TEST_OUT")"
+    OX_TEST_DIR="$(cygpath -m "$OX_TEST_DIR")"
+    export OX_TEST_OUT OX_TEST_DIR
+fi
 mkdir -p "$OX_TEST_OUT"
 
 # Use strictly the freshly built module (no fallback to an installed copy)
-export LUA_CPATH="$BUILD/?.so;$BUILD/?.dll"
+export LUA_CPATH="$BUILD_LUA/?.so;$BUILD_LUA/?.dll"
 echo "module: $MODULE"
 
 cd "$ROOT"

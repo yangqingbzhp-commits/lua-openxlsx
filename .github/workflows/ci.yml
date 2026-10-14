@@ -23,7 +23,8 @@ jobs:
           curl -fsSLO "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
           mkdir -p third_party
           tar xf "lua-${LUA_VERSION}.tar.gz" -C third_party
-          make -C "third_party/lua-${LUA_VERSION}/src" posix MYLIBS="-Wl,-E -ldl"
+          # "linux" target: LUA_USE_LINUX == POSIX + DLOPEN (required to load C modules)
+          make -C "third_party/lua-${LUA_VERSION}/src" linux
           sudo make -C "third_party/lua-${LUA_VERSION}" install INSTALL_TOP=/usr/local
       - name: Build OpenXLSX dependencies
         run: scripts/bootstrap.sh
@@ -80,15 +81,18 @@ jobs:
           curl -fsSLO "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
           mkdir -p third_party
           tar xf "lua-${LUA_VERSION}.tar.gz" -C third_party
-          make -C "third_party/lua-${LUA_VERSION}/src" mingw CC=gcc RANLIB=ranlib
-          echo "$PWD/third_party/lua-${LUA_VERSION}/src" >> "$GITHUB_PATH"
+          # the MinGW toolchain ships mingw32-make, not make
+          mingw32-make -C "third_party/lua-${LUA_VERSION}/src" mingw CC=gcc RANLIB=ranlib
       - name: Build OpenXLSX dependencies
         run: scripts/bootstrap.sh
       - name: Build module (links the Lua DLL - required on Windows)
         run: |
+          export PATH="$PWD/third_party/lua-${LUA_VERSION}/src:$PATH"
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
                 -DLUA_INCLUDE_DIR="$PWD/third_party/lua-${LUA_VERSION}/src" \
                 -DLUA_LIBRARY="$PWD/third_party/lua-${LUA_VERSION}/src/lua55.dll"
           cmake --build build
       - name: Run tests
-        run: scripts/run_tests.sh
+        run: |
+          export PATH="$PWD/third_party/lua-${LUA_VERSION}/src:$PATH"
+          scripts/run_tests.sh

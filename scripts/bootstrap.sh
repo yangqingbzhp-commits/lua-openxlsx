@@ -86,6 +86,7 @@ cmake -S "$SRC" -B "$BUILD" -G "$GENERATOR" \
     -DOPENXLSX_BUILD_TESTS=OFF \
     -DOPENXLSX_BUILD_BENCHMARKS=OFF \
     -DFETCHCONTENT_BASE_DIR="$BUILD/_deps" \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     "$@"
 
 # ---- 3. 构建并安装 ------------------------------------------------------------
