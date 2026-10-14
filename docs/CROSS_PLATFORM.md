@@ -151,10 +151,10 @@ cmake --build build-win       # -> build-win/openxlsx.dll
 
 ## LuaRocks
 
-仓库根目录提供 `lua-openxlsx-0.1.1-1.rockspec`（`command` 构建后端）：
+仓库根目录提供 `lua-openxlsx-0.1.2-1.rockspec`（`command` 构建后端）：
 
 ```bash
-luarocks --lua-version=5.5 install https://raw.githubusercontent.com/yangqingbzhp-commits/lua-openxlsx/main/lua-openxlsx-0.1.1-1.rockspec
+luarocks --lua-version=5.5 install https://raw.githubusercontent.com/yangqingbzhp-commits/lua-openxlsx/main/lua-openxlsx-0.1.2-1.rockspec
 ```
 
 平台要点：

@@ -30,14 +30,14 @@
 需要 LuaRocks ≥ 3.13（支持 Lua 5.5）：
 
 ```bash
-luarocks install https://raw.githubusercontent.com/yangqingbzhp-commits/lua-openxlsx/main/lua-openxlsx-0.1.1-1.rockspec
+luarocks install https://raw.githubusercontent.com/yangqingbzhp-commits/lua-openxlsx/main/lua-openxlsx-0.1.2-1.rockspec
 ```
 
 或在源码目录里就地安装：
 
 ```bash
 git clone https://github.com/yangqingbzhp-commits/lua-openxlsx && cd lua-openxlsx
-luarocks make lua-openxlsx-0.1.1-1.rockspec
+luarocks make lua-openxlsx-0.1.2-1.rockspec
 ```
 
 说明：
