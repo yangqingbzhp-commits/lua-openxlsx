@@ -12,3 +12,6 @@ third_party/
 *.so
 *.swp
 .DS_Store
+
+# prebuilt Windows test kit (regenerate: scripts/make_windows_kit.sh)
+dist/
