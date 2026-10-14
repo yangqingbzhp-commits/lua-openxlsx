@@ -25,6 +25,30 @@
 
 ## 快速开始
 
+### 方式 A：LuaRocks（一行安装）
+
+需要 LuaRocks ≥ 3.13（支持 Lua 5.5）：
+
+```bash
+luarocks install https://raw.githubusercontent.com/yangqingbzhp-commits/lua-openxlsx/main/lua-openxlsx-0.1.1-1.rockspec
+```
+
+或在源码目录里就地安装：
+
+```bash
+git clone https://github.com/yangqingbzhp-commits/lua-openxlsx && cd lua-openxlsx
+luarocks make lua-openxlsx-0.1.1-1.rockspec
+```
+
+说明：
+- OpenXLSX（含 pugixml/miniz，Windows 另含 Nowide）会**自动下载并构建**；
+  若已用 `scripts/bootstrap.sh` 建好 `.deps/`，则直接复用（更快）；
+- 需要网络、`git`、CMake ≥ 3.16 与 C++17 编译器；
+- 安装后 `eval "$(luarocks path)"`（Windows: `luarocks path` 设置环境变量）即可
+  `require("openxlsx")`。
+
+### 方式 B：CMake 手动构建（可控、适合开发）
+
 ```bash
 # 1) 构建依赖（克隆 OpenXLSX v0.5.1 并静态构建到项目内 .deps/，自动拉取 pugixml/miniz）
 scripts/bootstrap.sh

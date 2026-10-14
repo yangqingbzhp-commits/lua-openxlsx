@@ -149,6 +149,35 @@ cmake --build build-win       # -> build-win/openxlsx.dll
 `windows-latest`(MSYS2 MINGW64)，各自构建 Lua 5.5、OpenXLSX 依赖与模块，并运行
 `scripts/run_tests.sh` 全部测试。推送到 GitHub 后即可看到真机验证结果。
 
+## LuaRocks
+
+仓库根目录提供 `lua-openxlsx-0.1.1-1.rockspec`（`command` 构建后端）：
+
+```bash
+luarocks --lua-version=5.5 install https://raw.githubusercontent.com/yangqingbzhp-commits/lua-openxlsx/main/lua-openxlsx-0.1.1-1.rockspec
+```
+
+平台要点：
+
+| 平台 | 说明 |
+|---|---|
+| Linux | 直接可用；`luarocks` 需为 Lua 5.4/5.5 构建（如 `luarocks --lua-version=5.5`） |
+| macOS | `brew install luarocks`（若 brew 的 luarocks 按 5.4 构建，可用 `--lua-version` 或源码构建 LuaRocks 指向 Homebrew 的 Lua） |
+| Windows (MSYS2) | 用 MSYS2 的 `luarocks`（`pacman -S mingw-w64-x86_64-luarocks` 或 LuaRocks 官方版）；本工程 `OX_LINK_LUA` 默认开启，会自动在 `LUA_INCDIR/../lib` 找到 Lua 导入库 |
+
+验证安装：
+
+```bash
+eval "$(luarocks path)"          # Windows: luarocks path，然后按其提示设置
+lua -e "print(require('openxlsx').version())"
+```
+
+自动化验证（在源码目录）：
+
+```bash
+scripts/run_tests.sh             # 全套 320 项（脚本会自动把 OX_TEST_DIR 指到 test/）
+```
+
 ## 平台适配清单（本工程已处理）
 
 | 位置 | 处理 |
