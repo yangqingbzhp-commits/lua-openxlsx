@@ -58,10 +58,43 @@ for cell in ws:range("A1:C3"):each() do
     print(cell:address(), cell.value)
 end
 
+-- 单元格样式：字体 / 填充 / 边框 / 数字格式 / 对齐
+local styles = doc:styles()
+
+local font_idx = styles.fonts:create()
+local font = styles.fonts:get(font_idx)
+font.bold = true                      -- 属性读/写
+font.font_color = xlsx.color("FFFFFF")
+
+local fill_idx = styles.fills:create()
+local fill = styles.fills:get(fill_idx)
+fill.pattern_type = "solid"           -- 枚举名或数字均可
+fill.color = xlsx.color("4472C4")
+
+local border_idx = styles.borders:create()
+styles.borders:get(border_idx):set_bottom("thin", xlsx.color("808080"))
+
+local fmt_idx = styles.cell_formats:create()
+local fmt = styles.cell_formats:get(fmt_idx)
+fmt.font_index = font_idx
+fmt.fill_index = fill_idx
+fmt.border_index = border_idx
+fmt.apply_font = true
+fmt.apply_fill = true
+fmt.apply_border = true
+fmt.alignment.wrap_text = true        -- 对齐
+fmt.apply_alignment = true
+
+ws:cell("A1"):set_format(fmt_idx)
+ws:cell(1, 2):set_format(fmt_idx)     -- (row, col) 1-based
+ws:set_column_format("C", fmt_idx)    -- 整列套用
+
 doc:set_property(xlsx.property.TITLE, "十月报表")
 doc:save()
 doc:close()
 ```
+
+更多示例见 `examples/demo.lua`（带样式的完整报表）。
 
 ## 设计要点
 
@@ -70,6 +103,7 @@ doc:close()
 | 命名 | 全部 snake_case（`setBold` → `set_bold`、`createSheet` → `create_sheet`） |
 | 寻址 | 行列均为 **1-based**（与上游一致）；接受 `"A1"`、`xlsx.reference(row, col)`、`("A1")`；大小写不敏感；非法地址抛 Lua 错误而不是崩溃 |
 | 取值/赋值 | `cell.value`（number/string/boolean/nil/datetime）、`cell.formula`；`row.values` 支持数组批量读写 |
+| 样式 | 属性读写（`font.bold = true`）+ `get_/set_` 方法 + 容器 `create()/get()/count()`；样式对象是**活引用**（`create()` 立刻可见） |
 | 迭代 | `range:each()` / `rows():each()` / `rows():each_reverse()` 返回闭包迭代器；同时暴露 C++ 风格 `begin()/end()/next()/equals()` |
 | 错误 | C++ 异常统一转成 Lua error，前缀异常类名（如 `XLInputError: ...`） |
 | 生命周期 | **文档关闭/GC 后，其派生句柄（worksheet/cell/row/…）会干净报错**，不会踩到已释放内存 |
@@ -104,7 +138,7 @@ lua-openxlsx/
 
 ## 覆盖状态
 
-见 [docs/API_COVERAGE.md](docs/API_COVERAGE.md)。当前已完成核心读写全部 API；样式（XLStyles）、批注、表格、VML 绘图为后续阶段。
+见 [docs/API_COVERAGE.md](docs/API_COVERAGE.md)。当前已完成核心读写与样式（XLStyles 全家）全部 API；批注、表格、VML 绘图为后续阶段。
 
 ## 许可
 

@@ -191,7 +191,9 @@ int ws_update_sheet_name(lua_State *L) {
 
 int ws_merges(lua_State *L) {
     OX_TRY
-    push_live<XLMergeCells>(L, MT_MERGES, token_of(L, 1), check<XLWorksheet>(L, 1, MT_WORKSHEET)->merges());
+    auto *ws = check<XLWorksheet>(L, 1, MT_WORKSHEET);
+    // XLMergeCells caches its entries -> expose the worksheet's live object
+    push_ref<XLMergeCells>(L, MT_MERGES, token_of(L, 1), &ws->merges(), 1);
     return 1;
     OX_CATCH_ALL
 }

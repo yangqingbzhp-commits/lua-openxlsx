@@ -51,6 +51,28 @@ inline constexpr const char *MT_ROW_ITERATOR        = "openxlsx.row_iterator";
 inline constexpr const char *MT_ROW_REVERSE_ITERATOR = "openxlsx.row_reverse_iterator";
 inline constexpr const char *MT_ROW_DATA_ITERATOR   = "openxlsx.row_data_iterator";
 
+// style types (XLStyles.hpp)
+inline constexpr const char *MT_STYLES              = "openxlsx.styles";
+inline constexpr const char *MT_NUMBER_FORMAT       = "openxlsx.number_format";
+inline constexpr const char *MT_NUMBER_FORMATS      = "openxlsx.number_formats";
+inline constexpr const char *MT_FONT                = "openxlsx.font";
+inline constexpr const char *MT_FONTS               = "openxlsx.fonts";
+inline constexpr const char *MT_FILL                = "openxlsx.fill";
+inline constexpr const char *MT_FILLS               = "openxlsx.fills";
+inline constexpr const char *MT_LINE                = "openxlsx.line";
+inline constexpr const char *MT_BORDER              = "openxlsx.border";
+inline constexpr const char *MT_BORDERS             = "openxlsx.borders";
+inline constexpr const char *MT_ALIGNMENT           = "openxlsx.alignment";
+inline constexpr const char *MT_CELL_FORMAT         = "openxlsx.cell_format";
+inline constexpr const char *MT_CELL_FORMATS        = "openxlsx.cell_formats";
+inline constexpr const char *MT_CELL_STYLE          = "openxlsx.cell_style";
+inline constexpr const char *MT_CELL_STYLES         = "openxlsx.cell_styles";
+inline constexpr const char *MT_DIFF_CELL_FORMAT    = "openxlsx.diff_cell_format";
+inline constexpr const char *MT_DIFF_CELL_FORMATS   = "openxlsx.diff_cell_formats";
+inline constexpr const char *MT_GRADIENT_STOP       = "openxlsx.gradient_stop";
+inline constexpr const char *MT_GRADIENT_STOPS      = "openxlsx.gradient_stops";
+inline constexpr const char *MT_DATA_BAR_COLOR      = "openxlsx.data_bar_color";
+
 // ============================================================================
 // Error translation
 // ============================================================================
@@ -107,6 +129,7 @@ struct Box {
     std::shared_ptr<DocToken> token {};
     bool check_token { false };   // true for handles derived from a document
     bool owns_token { false };    // true for the document object itself
+    int owner_ref { LUA_NOREF };  // registry ref keeping the owning userdata alive
 };
 
 template <typename T>
@@ -123,7 +146,13 @@ inline void box_destroy(Box *b) {
 
 inline int box_gc(lua_State *L) {
     auto *b = static_cast<Box *>(lua_touserdata(L, 1));
-    if (b != nullptr) box_destroy(b);
+    if (b != nullptr) {
+        if (b->owner_ref != LUA_NOREF && b->owner_ref != LUA_REFNIL) {
+            luaL_unref(L, LUA_REGISTRYINDEX, b->owner_ref);
+            b->owner_ref = LUA_NOREF;
+        }
+        box_destroy(b);
+    }
     return 0;
 }
 
@@ -190,6 +219,28 @@ inline T *push_live(lua_State *L, const char *tname, std::shared_ptr<DocToken> t
     b->token  = std::move(token);
     b->check_token = true;
     return static_cast<T *>(b->obj);
+}
+
+/**
+ * Non-owning reference to an object owned by another userdata.
+ * Requires `ptr` to be a member/subobject of the object at `owner_index`; the
+ * owner is kept alive through a registry reference. Needed for upstream
+ * container classes (XLFonts, XLFills, ...) which cache their children: copies
+ * would go stale, so the binding must expose *the* live object.
+ */
+template <typename T>
+inline T *push_ref(lua_State *L, const char *tname, const std::shared_ptr<DocToken> &token, T *ptr,
+                   int owner_index) {
+    Box *b = box_new<T>(L, tname);
+    b->obj     = ptr;
+    b->deleter = nullptr;  // non-owning
+    b->token   = token;
+    b->check_token = true;
+    if (owner_index != 0) {
+        lua_pushvalue(L, owner_index);
+        b->owner_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+    return ptr;
 }
 
 /** For the document object itself: it owns the token (killed on close / gc). */

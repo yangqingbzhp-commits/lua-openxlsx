@@ -160,11 +160,43 @@ Lua 侧命名规则：C++ `camelCase` → Lua `snake_case`；枚举值进对应�
 | `colorScale/dataBar/iconSet/extLst`（上游未实现） | — | ➖ 上游 `XLUnsupportedElement` |
 | 枚举 | `openxlsx.cf_type.*` / `cf_operator.*` / `cf_time_period.*` | ✅ |
 
+## XLStyles 家族（`doc:styles()`）— P3 ✅
+
+21 个类的公开 API 全部绑定。**接口约定**：
+
+| 访问方式 | 示例 | 说明 |
+|---|---|---|
+| 属性读 | `font.bold`、`fill.pattern_type`、`border.left.style` | 属性名即 snake_case 名 |
+| 属性写 | `font.bold = true`、`fill.color = xlsx.color(255,255,0)` | 仅单参数 setter 支持属性写 |
+| 显式 getter | `font:get_bold()`、`fmt:get_alignment()` | `get_<name>` |
+| 显式 setter | `font:set_bold(true)`、`fill:set_pattern_type("solid")` | `set_<name>`；多参数 setter 只能方法调用（如 `border:set_left("thin", color[, tint])`） |
+| 容器 | `fonts:count()`、`fonts:get(i)`、`fonts:create([copy_from])`、`#fonts` | create 返回索引；`number_formats:number_format_by_id(id)` 等 |
+
+| 类 | Lua 形态 | 关键方法 | 状态 |
+|---|---|---|---|
+| `XLStyles` | `doc:styles()` | 8 个容器访问器 | ✅ |
+| `XLNumberFormats` / `XLNumberFormat` | `styles.number_formats` | `count/get/create`；`number_format_id`、`format_code`；`number_format_by_id`、`number_format_id_from_index` | ✅ |
+| `XLFonts` / `XLFont` | `styles.fonts` | `count/get/create`；`font_name/font_charset/font_family/font_size/font_color/bold/italic/strikethrough/underline/scheme/vert_align/outline/shadow/condense/extend/summary` | ✅ |
+| `XLFills` / `XLFill` | `styles.fills` | `count/get/create`；`fill_type/gradient_type/degree/left/right/top/bottom/stops/pattern_type/color/background_color/summary` | ✅ |
+| `XLBorders` / `XLBorder` / `XLLine` | `styles.borders` | `count/get/create`；`diagonal_up/diagonal_down/outline/left/right/top/bottom/diagonal/vertical/horizontal/summary`；`set_line/set_left/.../set_horizontal`（style + color + 可选 tint）；`XLLine`：`style/color/summary/is_set` | ✅ |
+| `XLAlignment` | `cell_format.alignment` | `horizontal/vertical/text_rotation/wrap_text/indent/relative_indent/justify_last_line/shrink_to_fit/reading_order/summary` | ✅ |
+| `XLCellFormats` / `XLCellFormat` | `styles.cell_formats`（另有 `cell_style_formats`） | `count/get/create`；`number_format_id/font_index/fill_index/border_index/xf_id/apply_*/quote_prefix/pivot_button/locked/hidden/alignment/summary` | ✅ |
+| `XLCellStyles` / `XLCellStyle` | `styles.cell_styles` | `count/get/create`；`empty/name/xf_id/builtin_id/outline_style/hidden/custom_builtin/summary` | ✅ |
+| `XLDiffCellFormats` / `XLDiffCellFormat` | `styles.diff_cell_formats` | `count/get/create`；`empty/font/num_fmt/fill/alignment/border/summary`（用于条件格式 `rule:set_dxf_id(idx)`） | ✅ |
+| `XLGradientStops` / `XLGradientStop` / `XLDataBarColor` | `fill.stops`、`line.color` 等 | `count/get/create`；`color/position`；`rgb/tint/automatic/indexed/theme/set` | ✅ |
+| 枚举常量 | `openxlsx.underline.*`、`pattern.*`、`line_style.*`、`line_type.*`、`align.*`、`fill_type.*`、`gradient_type.*`、`font_scheme.*`、`vert_align.*`、`reading_order.*` | 同时提供小写与全大写键 | ✅ |
+| `colorScale/dataBar/iconSet/extLst`（上游 `XLUnsupportedElement`） | — | ➖ 上游未实现 | |
+
+**行为说明（与上游的差异，均为有意为之）**：
+
+- 样式对象都是**活引用**（非拷贝）：`doc:styles()`、`styles.fonts` 等拿到的是文档内真实对象，`create()` 之后立刻可见（上游容器类内部缓存子元素，拷贝会过期）。
+- `cell_format.alignment` 默认 `create_if_missing = true`（上游默认 false），因为写入对齐前基本都需要先建节点。
+- `border:set_left(...)` 等返回"实际是否设置成功"（校验结果），而不用上游的返回值——上游在 tint=0（默认值）时恒返回 false（空 tint 属性写不进去）。
+
 ## 待完成（后续阶段）
 
 | 项 | 计划 |
 |---|---|
-| `XLStyles` 全家（XLFont/XLFill/XLBorder/XLNumberFormat/XLAlignments/XLColumnStyles/XLRowStyles/XLStyle…） | **P3**（最大块，上游 86KB 头文件） |
 | `XLComments` / `XLComment`（批注）、`XLTables`、`XLVmlDrawing`、`XLDrawing*` | **P4** |
 | `doc:sheet_relationships/vml_drawing/comments/tables`、`ws:comments/tables/vml_drawing` | **P4** |
 | `cell:equals` / `row:equals`、`value:variant()`、`xlsx.path_relative_to` / `normalize_path` | **P5** |

@@ -98,6 +98,19 @@ int doc_workbook(lua_State *L) {
     OX_CATCH_ALL
 }
 
+int doc_styles(lua_State *L) {
+    OX_TRY
+    auto *doc = check<XLDocument>(L, 1, MT_DOCUMENT);
+    if (!doc->isOpen()) {
+        return luaL_error(L, "document is not open - call create() or open() first");
+    }
+    // live, non-owning handle to the document's styles object (its containers
+    // cache their children, so copies must be avoided)
+    push_ref<XLStyles>(L, MT_STYLES, token_of(L, 1), &doc->styles(), 1);
+    return 1;
+    OX_CATCH_ALL
+}
+
 int doc_property(lua_State *L) {
     OX_TRY
     auto *doc = check<XLDocument>(L, 1, MT_DOCUMENT);
@@ -196,6 +209,7 @@ const luaL_Reg doc_methods[] = {
     { "path", doc_path },
     { "is_open", doc_is_open },
     { "workbook", doc_workbook },
+    { "styles", doc_styles },
     { "property", doc_property },
     { "set_property", doc_set_property },
     { "delete_property", doc_delete_property },
