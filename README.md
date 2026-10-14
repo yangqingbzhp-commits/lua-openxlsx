@@ -96,6 +96,24 @@ doc:close()
 
 更多示例见 `examples/demo.lua`（带样式的完整报表）。
 
+### 批注 / VML 形状 / 关系
+
+```lua
+local comments = ws:comments()                       -- 自动创建 comments + VML 文件
+comments:add_author("Alice")                          -- 返回作者 id
+comments:set("A1", "这是一条批注", 0)
+comments:set("B2", "第二条", 0)
+comments:shape("A1"):style():show()                   -- 显示批注框
+for i = 0, comments:count() - 1 do
+    local c = comments:get(i)
+    print(c:ref(), c:text(), comments:author(c:author_id()))
+end
+
+for _, rel in ipairs(doc:sheet_relationships(1):relationships()) do
+    print(rel:type_name(), rel:target())
+end
+```
+
 ## 设计要点
 
 | 主题 | 约定 |
@@ -138,7 +156,7 @@ lua-openxlsx/
 
 ## 覆盖状态
 
-见 [docs/API_COVERAGE.md](docs/API_COVERAGE.md)。当前已完成核心读写与样式（XLStyles 全家）全部 API；批注、表格、VML 绘图为后续阶段。
+见 [docs/API_COVERAGE.md](docs/API_COVERAGE.md)。核心读写、样式（XLStyles 全家）、批注/表格/VML/关系（P4）均已完成；剩余为少量工具方法与覆盖度核对（P5）。
 
 ## 许可
 

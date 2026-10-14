@@ -2,100 +2,23 @@
 // bind_styles.cpp — XLStyles and friends (fonts, fills, borders, number
 //                   formats, alignments, cell formats/styles, dxfs, gradients)
 //
-// Most style classes follow a `getX()` / `setX(v)` pattern; these are wired up
-// with a small generic machinery:
-//   * methods:   obj:x()            -> getter
-//                obj:set_x(v)       -> setter
-//   * property sugar:  obj.x  /  obj.x = v
-// Only setter functions taking exactly one argument are exposed as writable
-// properties; multi-argument setters are available as methods only.
+// The generic getter/setter + property machinery lives in style_machinery.hpp.
 // =============================================================================
 #include "lua_bind.hpp"
+#include "style_machinery.hpp"
 
 #include <cstring>
 #include <iterator>
-#include <tuple>
-#include <type_traits>
 
 using namespace OpenXLSX;
 using namespace ox;
 
-namespace {
+// (style_mt / is_style_object specializations live in style_machinery.hpp)
 
-// ============================================================================
-// metatable lookup for style types
-// ============================================================================
-template <typename T>
-constexpr const char *style_mt();
-
-template <> constexpr const char *style_mt<XLStyles>() { return MT_STYLES; }
-template <> constexpr const char *style_mt<XLColor>() { return MT_COLOR; }
-template <> constexpr const char *style_mt<XLNumberFormat>() { return MT_NUMBER_FORMAT; }
-template <> constexpr const char *style_mt<XLNumberFormats>() { return MT_NUMBER_FORMATS; }
-template <> constexpr const char *style_mt<XLFont>() { return MT_FONT; }
-template <> constexpr const char *style_mt<XLFonts>() { return MT_FONTS; }
-template <> constexpr const char *style_mt<XLFill>() { return MT_FILL; }
-template <> constexpr const char *style_mt<XLFills>() { return MT_FILLS; }
-template <> constexpr const char *style_mt<XLLine>() { return MT_LINE; }
-template <> constexpr const char *style_mt<XLBorder>() { return MT_BORDER; }
-template <> constexpr const char *style_mt<XLBorders>() { return MT_BORDERS; }
-template <> constexpr const char *style_mt<XLAlignment>() { return MT_ALIGNMENT; }
-template <> constexpr const char *style_mt<XLCellFormat>() { return MT_CELL_FORMAT; }
-template <> constexpr const char *style_mt<XLCellFormats>() { return MT_CELL_FORMATS; }
-template <> constexpr const char *style_mt<XLCellStyle>() { return MT_CELL_STYLE; }
-template <> constexpr const char *style_mt<XLCellStyles>() { return MT_CELL_STYLES; }
-template <> constexpr const char *style_mt<XLDiffCellFormat>() { return MT_DIFF_CELL_FORMAT; }
-template <> constexpr const char *style_mt<XLDiffCellFormats>() { return MT_DIFF_CELL_FORMATS; }
-template <> constexpr const char *style_mt<XLGradientStop>() { return MT_GRADIENT_STOP; }
-template <> constexpr const char *style_mt<XLGradientStops>() { return MT_GRADIENT_STOPS; }
-template <> constexpr const char *style_mt<XLDataBarColor>() { return MT_DATA_BAR_COLOR; }
-
-/** Types returned by style getters that are pushed as userdata. */
-template <typename V>
-struct is_style_object : std::false_type {};
-#define OX_OBJECT_TYPE(T) template <> struct is_style_object<T> : std::true_type {};
-OX_OBJECT_TYPE(XLColor)
-OX_OBJECT_TYPE(XLStyles)
-OX_OBJECT_TYPE(XLNumberFormat)
-OX_OBJECT_TYPE(XLNumberFormats)
-OX_OBJECT_TYPE(XLFont)
-OX_OBJECT_TYPE(XLFonts)
-OX_OBJECT_TYPE(XLFill)
-OX_OBJECT_TYPE(XLFills)
-OX_OBJECT_TYPE(XLLine)
-OX_OBJECT_TYPE(XLBorder)
-OX_OBJECT_TYPE(XLBorders)
-OX_OBJECT_TYPE(XLAlignment)
-OX_OBJECT_TYPE(XLCellFormat)
-OX_OBJECT_TYPE(XLCellFormats)
-OX_OBJECT_TYPE(XLCellStyle)
-OX_OBJECT_TYPE(XLCellStyles)
-OX_OBJECT_TYPE(XLDiffCellFormat)
-OX_OBJECT_TYPE(XLDiffCellFormats)
-OX_OBJECT_TYPE(XLGradientStop)
-OX_OBJECT_TYPE(XLGradientStops)
-OX_OBJECT_TYPE(XLDataBarColor)
-#undef OX_OBJECT_TYPE
-
-// ============================================================================
+// ---------------------------------------------------------------------------
 // enum name tables
-// ============================================================================
-struct EnumEntry {
-    const char *name;
-    long value;
-};
-
-#define OX_ENUM_TABLE(E, ...)                                     \
-    template <>                                                   \
-    struct enum_traits_closed<E> {                                \
-        static const EnumEntry *table() {                         \
-            static const EnumEntry t[] = { __VA_ARGS__, { nullptr, 0 } }; \
-            return t;                                             \
-        }                                                         \
-    };
-
-template <typename E>
-struct enum_traits_closed;
+// ---------------------------------------------------------------------------
+namespace ox {
 
 OX_ENUM_TABLE(XLUnderlineStyle,
               { "none", XLUnderlineNone }, { "single", XLUnderlineSingle },
@@ -148,269 +71,9 @@ OX_ENUM_TABLE(XLReadingOrder,
               { "left_to_right", XLReadingOrderLeftToRight },
               { "right_to_left", XLReadingOrderRightToLeft })
 
-template <typename E>
-E check_enum_arg(lua_State *L, int idx) {
-    if (lua_isinteger(L, idx)) return E(lua_tointeger(L, idx));
-    const std::string s = check_string(L, idx);
-    for (const EnumEntry *e = enum_traits_closed<E>::table(); e->name != nullptr; ++e) {
-        if (iequal_loose(s.c_str(), e->name)) return E(e->value);
-    }
-    return luaL_error(L, "invalid enum name: '%s'", s.c_str()), E(0);
-}
+}  // namespace ox
 
-// ============================================================================
-// value push / argument check
-// ============================================================================
-template <typename V>
-inline void push_style_value(lua_State *L, const V &v) {
-    using U = std::decay_t<V>;
-    if constexpr (std::is_same_v<U, bool>) {
-        lua_pushboolean(L, v);
-    } else if constexpr (std::is_enum_v<U>) {
-        lua_pushinteger(L, lua_Integer(static_cast<std::underlying_type_t<U>>(v)));
-    } else if constexpr (std::is_integral_v<U>) {
-        lua_pushinteger(L, lua_Integer(v));
-    } else if constexpr (std::is_floating_point_v<U>) {
-        lua_pushnumber(L, double(v));
-    } else if constexpr (std::is_same_v<U, std::string>) {
-        push_string(L, v);
-    } else {
-        static_assert(sizeof(U) == 0, "unsupported style getter return type");
-    }
-}
-
-template <typename A>
-inline A check_style_arg(lua_State *L, int idx) {
-    using U = std::decay_t<A>;
-    if constexpr (std::is_same_v<U, bool>) {
-        // upstream bool setter parameters default to `true`
-        return lua_isnoneornil(L, idx) ? true : (lua_toboolean(L, idx) != 0);
-    } else if constexpr (std::is_enum_v<U>) {
-        return check_enum_arg<U>(L, idx);
-    } else if constexpr (std::is_integral_v<U>) {
-        return U(luaL_checkinteger(L, idx));
-    } else if constexpr (std::is_floating_point_v<U>) {
-        return lua_isnoneornil(L, idx) ? U(0) : U(luaL_checknumber(L, idx));
-    } else if constexpr (std::is_same_v<U, std::string>) {
-        return check_string(L, idx);
-    } else if constexpr (std::is_same_v<U, XLColor>) {
-        if (auto *c = maybe<XLColor>(L, idx, MT_COLOR)) return *c;
-        if (lua_type(L, idx) == LUA_TSTRING) return XLColor(check_string(L, idx));
-        luaL_error(L, "expected a color object or 'RRGGBB'/'AARRGGBB' string");
-        return XLColor();
-    } else {
-        static_assert(sizeof(U) == 0, "unsupported style setter argument type");
-    }
-}
-
-// ============================================================================
-// member function traits
-// ============================================================================
-template <typename F>
-struct mem_fn_arg_tuple;
-
-template <typename R, typename C, typename... A>
-struct mem_fn_arg_tuple<R (C::*)(A...)> {
-    using args = std::tuple<A...>;
-};
-template <typename R, typename C, typename... A>
-struct mem_fn_arg_tuple<R (C::*)(A...) const> {
-    using args = std::tuple<A...>;
-};
-
-template <auto F>
-struct mem_fn_args : mem_fn_arg_tuple<decltype(F)> {};
-
-template <auto F>
-constexpr bool setter_is_unary() {
-    return std::tuple_size_v<typename mem_fn_args<F>::args> == 1;
-}
-
-// ============================================================================
-// generic getter / setter wrappers
-// ============================================================================
-template <typename C, auto Getter>
-int style_get(lua_State *L) {
-    OX_TRY
-    auto *obj = check<C>(L, 1, style_mt<C>());
-    using R = decltype((obj->*Getter)());
-    using V = std::decay_t<R>;
-    if constexpr (std::is_reference_v<R> && is_style_object<V>::value) {
-        // reference to a member of the owner: expose a live, non-owning handle
-        // (upstream containers cache their children, copies would go stale)
-        V &ref = (obj->*Getter)();
-        push_ref<V>(L, style_mt<V>(), token_of(L, 1), &ref, 1);
-        return 1;
-    } else if constexpr (is_style_object<V>::value) {
-        const V value = (obj->*Getter)();   // copy; XML nodes are shared underneath
-        push_live<V>(L, style_mt<V>(), token_of(L, 1), value);
-        return 1;
-    } else {
-        push_style_value(L, (obj->*Getter)());
-        return 1;
-    }
-    OX_CATCH_ALL
-}
-
-template <typename C, auto Setter, std::size_t... I>
-auto call_style_setter(lua_State *L, C *obj, std::index_sequence<I...>) {
-    using Args = typename mem_fn_args<Setter>::args;
-    return (obj->*Setter)(check_style_arg<std::tuple_element_t<I, Args>>(L, 2 + int(I))...);
-}
-
-template <typename C, auto Setter>
-int style_set(lua_State *L) {
-    OX_TRY
-    auto *obj = check<C>(L, 1, style_mt<C>());
-    using Args = typename mem_fn_args<Setter>::args;
-    constexpr auto seq = std::make_index_sequence<std::tuple_size_v<Args>>{};
-    if constexpr (std::is_void_v<decltype(call_style_setter<C, Setter>(L, obj, seq))>) {
-        call_style_setter<C, Setter>(L, obj, seq);
-        return 0;
-    } else {
-        const auto ok = call_style_setter<C, Setter>(L, obj, seq);
-        push_style_value(L, ok);
-        return 1;
-    }
-    OX_CATCH_ALL
-}
-
-// ============================================================================
-// property machinery:  obj.name  /  obj.name = value
-// ============================================================================
-struct StyleMember {
-    const char *name;
-    lua_CFunction getter;
-    lua_CFunction setter;
-    bool prop_settable;   // setter takes exactly one argument
-};
-
-template <typename T>
-int style_index(lua_State *L) {
-    if (lua_type(L, 2) == LUA_TSTRING) {
-        // methods first
-        lua_pushvalue(L, lua_upvalueindex(1));
-        lua_pushvalue(L, 2);
-        lua_rawget(L, -2);
-        if (!lua_isnil(L, -1)) {
-            lua_remove(L, -2);
-            return 1;
-        }
-        lua_pop(L, 2);
-        // then property getter
-        lua_pushvalue(L, lua_upvalueindex(2));
-        lua_pushvalue(L, 2);
-        lua_rawget(L, -2);                    // [props, entry]
-        if (lua_istable(L, -1)) {
-            lua_getfield(L, -1, "get");       // [props, entry, get]
-            lua_remove(L, -2);                // [props, get]
-            if (!lua_isnil(L, -1)) {
-                lua_pushvalue(L, 1);          // [props, get, self]
-                lua_call(L, 1, 1);            // [props, result]
-                lua_remove(L, -2);
-                return 1;
-            }
-        }
-        lua_pop(L, 2);
-    }
-    lua_pushnil(L);
-    return 1;
-}
-
-template <typename T>
-int style_newindex(lua_State *L) {
-    if (lua_type(L, 2) == LUA_TSTRING) {
-        lua_pushvalue(L, lua_upvalueindex(2));
-        lua_pushvalue(L, 2);
-        lua_rawget(L, -2);                    // [props, entry]
-        if (lua_istable(L, -1)) {
-            lua_getfield(L, -1, "set");
-            lua_remove(L, -2);                // [props, setter]
-            if (!lua_isnil(L, -1)) {
-                lua_pushvalue(L, 1);          // self
-                lua_pushvalue(L, 3);          // value
-                lua_call(L, 2, 0);
-                lua_pop(L, 1);                // props
-                return 0;
-            }
-        }
-        lua_pop(L, 2);
-        return luaL_error(L, "style property '%s' is read-only or does not exist", lua_tostring(L, 2));
-    }
-    return luaL_error(L, "style objects only accept string property names");
-}
-
-template <typename T>
-void register_style_type(lua_State *L, const char *tname, const StyleMember *members, size_t count,
-                         const luaL_Reg *extra_methods = nullptr) {
-    if (!luaL_newmetatable(L, tname)) return;
-    const int mt = lua_gettop(L);
-    lua_newtable(L);
-    const int methods = lua_gettop(L);
-    lua_newtable(L);
-    const int props = lua_gettop(L);
-
-    if (extra_methods != nullptr) {
-        lua_pushvalue(L, methods);          // luaL_setfuncs works on the top of the stack
-        luaL_setfuncs(L, extra_methods, 0);
-        lua_pop(L, 1);
-    }
-
-    for (size_t i = 0; i < count; ++i) {
-        const StyleMember &m = members[i];
-        if (m.getter != nullptr) {
-            // explicit getter method  ->  obj:get_name()
-            const std::string get_name = std::string("get_") + m.name;
-            lua_pushcfunction(L, m.getter);
-            lua_setfield(L, methods, get_name.c_str());
-            // property read  ->  obj.name
-            lua_newtable(L);                            // props entry
-            lua_pushcfunction(L, m.getter);
-            lua_setfield(L, -2, "get");
-            if (m.setter != nullptr && m.prop_settable) {
-                lua_pushcfunction(L, m.setter);
-                lua_setfield(L, -2, "set");
-            }
-            lua_setfield(L, props, m.name);
-        }
-        if (m.setter != nullptr) {
-            const std::string set_name = std::string("set_") + m.name;
-            lua_pushcfunction(L, m.setter);
-            lua_setfield(L, methods, set_name.c_str());
-            if (m.getter == nullptr) {
-                lua_newtable(L);
-                if (m.prop_settable) {
-                    lua_pushcfunction(L, m.setter);
-                    lua_setfield(L, -2, "set");
-                }
-                lua_setfield(L, props, m.name);
-            }
-        }
-    }
-
-    lua_pushvalue(L, methods);
-    lua_pushvalue(L, props);
-    lua_pushcclosure(L, style_index<T>, 2);
-    lua_setfield(L, mt, "__index");
-
-    lua_pushvalue(L, methods);
-    lua_pushvalue(L, props);
-    lua_pushcclosure(L, style_newindex<T>, 2);
-    lua_setfield(L, mt, "__newindex");
-
-    lua_pushcfunction(L, &box_gc);
-    lua_setfield(L, mt, "__gc");
-
-    lua_pop(L, 2);   // props, methods
-    lua_pop(L, 1);   // metatable
-}
-
-// ============================================================================
-// macros for the member tables
-// ============================================================================
-#define OX_PROP(C, n, g, s) { #n, &style_get<C, &C::g>, &style_set<C, &C::s>, setter_is_unary<&C::s>() }
-#define OX_PROP_RO(C, n, g) { #n, &style_get<C, &C::g>, nullptr, false }
-#define OX_PROP_WO(C, n, s) { #n, nullptr, &style_set<C, &C::s>, setter_is_unary<&C::s>() }
+namespace {
 
 // ============================================================================
 // hand-written helpers for members with non-standard signatures
@@ -519,6 +182,7 @@ int border_set_line(lua_State *L) {
     return 1;
     OX_CATCH_ALL
 }
+
 // ============================================================================
 // containers
 // ============================================================================
@@ -563,7 +227,6 @@ OX_DEFINE_CONTAINER(XLCellStyles, XLCellStyle, cellStyleByIndex)
 OX_DEFINE_CONTAINER(XLDiffCellFormats, XLDiffCellFormat, diffCellFormatByIndex)
 OX_DEFINE_CONTAINER(XLGradientStops, XLGradientStop, stopByIndex)
 
-// __len installers (size of the count)
 int number_formats_len(lua_State *L) { return XLNumberFormats_count(L); }
 int fonts_len(lua_State *L) { return XLFonts_count(L); }
 int fills_len(lua_State *L) { return XLFills_count(L); }
@@ -763,53 +426,33 @@ void bind_styles(lua_State *L) {
     register_style_type<XLDiffCellFormats>(L, MT_DIFF_CELL_FORMATS, nullptr, 0, XLDiffCellFormats_methods);
     register_style_type<XLGradientStops>(L, MT_GRADIENT_STOPS, nullptr, 0, XLGradientStops_methods);
 
-    // extra methods on specific containers (the methods table lives in
-    // __index closure upvalue 1)
+    // extra methods
     {
-        luaL_getmetatable(L, MT_NUMBER_FORMATS);
-        lua_getfield(L, -1, "__index");       // index closure
-        lua_getupvalue(L, -1, 1);             // methods table
-        lua_pushcfunction(L, number_format_by_id);
-        lua_setfield(L, -2, "number_format_by_id");
-        lua_pushcfunction(L, number_format_id_from_index);
-        lua_setfield(L, -2, "number_format_id_from_index");
-        lua_pop(L, 3);
+        const luaL_Reg number_formats_extra[] = {
+            { "number_format_by_id", number_format_by_id },
+            { "number_format_id_from_index", number_format_id_from_index },
+            { nullptr, nullptr },
+        };
+        add_style_methods(L, MT_NUMBER_FORMATS, number_formats_extra);
     }
     {
-        luaL_getmetatable(L, MT_LINE);
-        lua_getfield(L, -1, "__index");
-        lua_getupvalue(L, -1, 1);
-        lua_pushcfunction(L, line_is_set);
-        lua_setfield(L, -2, "is_set");
-        lua_pop(L, 3);
+        const luaL_Reg line_extra[] = { { "is_set", line_is_set }, { nullptr, nullptr } };
+        add_style_methods(L, MT_LINE, line_extra);
     }
     {
-        luaL_getmetatable(L, MT_DATA_BAR_COLOR);
-        lua_getfield(L, -1, "__index");
-        lua_getupvalue(L, -1, 1);
-        lua_pushcfunction(L, data_bar_color_set);
-        lua_setfield(L, -2, "set");
-        lua_pop(L, 3);
+        const luaL_Reg color_extra[] = { { "set", data_bar_color_set }, { nullptr, nullptr } };
+        add_style_methods(L, MT_DATA_BAR_COLOR, color_extra);
     }
 
-    // __len metamethods for containers
-    struct LenEntry {
-        const char *mt;
-        lua_CFunction fn;
-    };
-    const LenEntry len_entries[] = {
-        { MT_NUMBER_FORMATS, number_formats_len }, { MT_FONTS, fonts_len },
-        { MT_FILLS, fills_len },                   { MT_BORDERS, borders_len },
-        { MT_CELL_FORMATS, cell_formats_len },     { MT_CELL_STYLES, cell_styles_len },
-        { MT_DIFF_CELL_FORMATS, diff_cell_formats_len },
-        { MT_GRADIENT_STOPS, gradient_stops_len },
-    };
-    for (const auto &e : len_entries) {
-        luaL_getmetatable(L, e.mt);
-        lua_pushcfunction(L, e.fn);
-        lua_setfield(L, -2, "__len");
-        lua_pop(L, 1);
-    }
+    // __len metamethods
+    set_len_metamethod(L, MT_NUMBER_FORMATS, number_formats_len);
+    set_len_metamethod(L, MT_FONTS, fonts_len);
+    set_len_metamethod(L, MT_FILLS, fills_len);
+    set_len_metamethod(L, MT_BORDERS, borders_len);
+    set_len_metamethod(L, MT_CELL_FORMATS, cell_formats_len);
+    set_len_metamethod(L, MT_CELL_STYLES, cell_styles_len);
+    set_len_metamethod(L, MT_DIFF_CELL_FORMATS, diff_cell_formats_len);
+    set_len_metamethod(L, MT_GRADIENT_STOPS, gradient_stops_len);
 
     // ---- enum constants ----
     auto enum_table = [&](const char *table_name, const EnumEntry *entries) {
@@ -817,9 +460,6 @@ void bind_styles(lua_State *L) {
         for (const EnumEntry *e = entries; e->name != nullptr; ++e) {
             lua_pushinteger(L, lua_Integer(e->value));
             lua_setfield(L, -2, e->name);
-        }
-        // also add an uppercase variant of each name for convenience
-        for (const EnumEntry *e = entries; e->name != nullptr; ++e) {
             std::string upper(e->name);
             for (char &c : upper) c = (c >= 'a' && c <= 'z') ? char(c - 'a' + 'A') : c;
             lua_pushinteger(L, lua_Integer(e->value));

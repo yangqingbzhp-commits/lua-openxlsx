@@ -193,12 +193,31 @@ Lua 侧命名规则：C++ `camelCase` → Lua `snake_case`；枚举值进对应�
 - `cell_format.alignment` 默认 `create_if_missing = true`（上游默认 false），因为写入对齐前基本都需要先建节点。
 - `border:set_left(...)` 等返回"实际是否设置成功"（校验结果），而不用上游的返回值——上游在 tint=0（默认值）时恒返回 false（空 tint 属性写不进去）。
 
+## 批注 / 表格 / 绘图 / 关系（P4 ✅）
+
+| 类 | Lua 形态 | 关键接口 | 状态 |
+|---|---|---|---|
+| `XLComments` | `ws:comments()`（活引用）、`doc:sheet_comments(id)` | `add_author/author/author_count/delete_author`、`set(cell, text[, author_id])`、`get(cell)`（字符串）/`get(index)`（XLComment）、`author_id/delete_comment/count/#comments`、`shape(cell)`、`set_vml_drawing(vml)` | ✅ |
+| `XLComment` | `comments:get(index)` | `valid/ref/text/author_id/set_text/set_author_id` | ✅ |
+| `XLTables` | `ws:tables()`、`doc:sheet_tables(id)` | 上游目前没有功能性 API（仅 `print`） | ✅（空壳类型） |
+| `XLVmlDrawing` | `ws:vml_drawing()`（活引用）、`doc:sheet_vml_drawing(id)` | `shape_count/shape(index)/create_shape([template])/delete_shape(index|cell)` | ✅ |
+| `XLShape` | `vml:create_shape()`、`comments:shape(cell)`、`vml:shape(i)` | `shape_id/fill_color/stroked/type/allow_in_cell/style/client_data`、`set_fill_color/set_stroked/set_type/set_allow_in_cell/set_style(string|style)` | ✅ |
+| `XLShapeStyle` | `shape:style()`（可从 `xlsx.shape_style(raw)` 构造独立对象） | 属性读写：`position/margin_left/margin_top/width/height/mso_wrap_style/v_text_anchor/hidden/visible/raw`；方法 `hide()/show()` | ✅ |
+| `XLShapeClientData` | `shape:client_data()` | 属性读写：`object_type/move_with_cells/size_with_cells/anchor/auto_fill/text_v_align/text_h_align/row/column` | ✅ |
+| `XLRelationships` | `doc:sheet_relationships(id)` | `relationship_by_id/relationship_by_target/relationships/count/#rels/delete_relationship/add_relationship/target_exists/id_exists` | ✅ |
+| `XLRelationshipItem` | 关系数组元素 / `add_relationship` 返回值 | `type/type_name/target/id/empty` | ✅ |
+| 枚举 | `openxlsx.shape_v_align.*`、`shape_h_align.*`、`relationship_type.*`（26 种类型） | 名称与数值均可 | ✅ |
+| `print(ostream)` | — | ➖ | — |
+
+**行为说明**：
+
+- `XLShapeStyle` **不可拷贝**（unique_ptr 成员），绑定层用 C++17 保证的原地构造；`shape:style()` 返回的样式对象**与形状的 XML 联动**（`show()/hide()`、setter 直接写回形状），而 `xlsx.shape_style(str)` 构造的是独立对象，可用于 `shape:set_style(obj)`。
+- VML 形状计数是**每个对象私有**的（XML 共享）：`XLComments` 内部还持有一份自己的 VML drawing 副本。索引类操作（`shape(i)`/`delete_shape(i)`）请使用同一个对象，或从文档新建对象（`doc:sheet_vml_drawing(id)` 会重新扫描 XML）。
+
 ## 待完成（后续阶段）
 
 | 项 | 计划 |
 |---|---|
-| `XLComments` / `XLComment`（批注）、`XLTables`、`XLVmlDrawing`、`XLDrawing*` | **P4** |
-| `doc:sheet_relationships/vml_drawing/comments/tables`、`ws:comments/tables/vml_drawing` | **P4** |
 | `cell:equals` / `row:equals`、`value:variant()`、`xlsx.path_relative_to` / `normalize_path` | **P5** |
 | 覆盖度自动核对（`tools/api_inventory.py` 生成 → 与本清单比对） | **P5** |
 

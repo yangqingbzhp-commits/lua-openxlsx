@@ -73,6 +73,17 @@ inline constexpr const char *MT_GRADIENT_STOP       = "openxlsx.gradient_stop";
 inline constexpr const char *MT_GRADIENT_STOPS      = "openxlsx.gradient_stops";
 inline constexpr const char *MT_DATA_BAR_COLOR      = "openxlsx.data_bar_color";
 
+// comments / tables / drawings / relationships (P4)
+inline constexpr const char *MT_COMMENT             = "openxlsx.comment";
+inline constexpr const char *MT_COMMENTS            = "openxlsx.comments";
+inline constexpr const char *MT_TABLES              = "openxlsx.tables";
+inline constexpr const char *MT_VML_DRAWING         = "openxlsx.vml_drawing";
+inline constexpr const char *MT_SHAPE               = "openxlsx.shape";
+inline constexpr const char *MT_SHAPE_STYLE         = "openxlsx.shape_style";
+inline constexpr const char *MT_SHAPE_CLIENT_DATA   = "openxlsx.shape_client_data";
+inline constexpr const char *MT_RELATIONSHIPS       = "openxlsx.relationships";
+inline constexpr const char *MT_RELATIONSHIP_ITEM   = "openxlsx.relationship_item";
+
 // ============================================================================
 // Error translation
 // ============================================================================
