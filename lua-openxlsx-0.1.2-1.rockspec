@@ -1,10 +1,10 @@
 rockspec_format = "3.0"
 package = "lua-openxlsx"
-version = "0.1.1-1"
+version = "0.1.2-1"
 
 source = {
    url = "git+https://github.com/yangqingbzhp-commits/lua-openxlsx.git",
-   tag = "v0.1.1",
+   tag = "v0.1.2",
 }
 
 description = {

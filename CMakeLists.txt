@@ -88,6 +88,9 @@ if(NOT OpenXLSX_FOUND)
         set(OPENXLSX_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         set(OPENXLSX_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE)
         set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)  # miniz declares < 3.5
+        # the fetched static libs are linked into a shared module -> PIC required
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "" FORCE)
         FetchContent_Declare(OpenXLSX
             GIT_REPOSITORY https://codeberg.org/lars_uffmann/OpenXLSX.git
             GIT_TAG v0.5.1
