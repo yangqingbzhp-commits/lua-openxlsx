@@ -32,13 +32,22 @@ function M.rmtree(path)
     end
 end
 
---- extract a zip archive (uses unzip on Unix, bsdtar on Windows 10+)
+--- extract a zip archive
+--- Unix: unzip;  Windows: unzip when available (MSYS2/Git-Bash), otherwise the
+--- Windows built-in bsdtar (C:\Windows\System32\tar.exe). NOTE: plain `tar`
+--- is avoided on Windows because MSYS2 ships GNU tar, which misreads "D:/..."
+--- paths as remote hosts.
 function M.extract_zip(zip_path, dir)
     M.makedirs(dir)
-    if is_windows then
-        os.execute(string.format('tar -xf "%s" -C "%s"', native(zip_path), native(dir)))
-    else
+    if not is_windows then
         os.execute(string.format("unzip -o -q '%s' -d '%s'", zip_path, dir))
+        return
+    end
+    local z, d = native(zip_path), native(dir)
+    local ok = os.execute(string.format('unzip -o -q "%s" -d "%s"', z, d))
+    if not ok then
+        local systemroot = os.getenv("SystemRoot") or "C:\\Windows"
+        os.execute(string.format('"%s\\System32\\tar.exe" -xf "%s" -C "%s"', systemroot, z, d))
     end
 end
 

@@ -76,6 +76,7 @@ jobs:
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-git
             mingw-w64-x86_64-make
+            unzip
       - name: Build Lua ${{ env.LUA_VERSION }} for Windows
         run: |
           curl -fsSLO "https://www.lua.org/ftp/lua-${LUA_VERSION}.tar.gz"
