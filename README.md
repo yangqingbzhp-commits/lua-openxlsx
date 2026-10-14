@@ -1,5 +1,7 @@
 # lua-openxlsx
 
+[![ci](https://github.com/yangqingbzhp-commits/lua-openxlsx/actions/workflows/ci.yml/badge.svg)](https://github.com/yangqingbzhp-commits/lua-openxlsx/actions/workflows/ci.yml)
+
 **OpenXLSX（C++ 读写 .xlsx 的库）的 Lua 绑定** —— 用 Lua 读写 Excel 文件。
 
 - 上游： [OpenXLSX v0.5.1](https://codeberg.org/lars_uffmann/OpenXLSX)（BSD-3-Clause，2026-06 发布）
@@ -11,9 +13,12 @@
 
 | | Linux | macOS | Windows (MinGW-w64) |
 |---|---|---|---|
-| 状态 | ✅ 本机全量测试通过 | ⚠️ 支持（CI 验证；本机无 mac） | ⚠️ 支持（交叉编译已验证产出 dll；运行需真机/CI） |
+| 状态 | ✅ 本机 + CI 全绿 | ✅ **CI 真机全绿** | ✅ **CI 真机全绿**（真实 windows-latest runner） |
 | 模块 | `openxlsx.so` | `openxlsx.so` | `openxlsx.dll` |
 | 特殊点 | 解释器提供 Lua 符号 | `-undefined dynamic_lookup`（已自动处理） | **必须链接 Lua 导入库**（`OX_LINK_LUA=ON`，默认） |
+
+三平台 CI 矩阵（每平台：源码编译 Lua 5.5 → 构建 OpenXLSX 全家 → 编译模块 → 跑全部 320 项测试）：
+[Actions 运行记录](https://github.com/yangqingbzhp-commits/lua-openxlsx/actions/workflows/ci.yml)。
 
 构建方法、交叉编译（Linux→Windows）、MSVC 说明与 CI 工作流详见
 [docs/CROSS_PLATFORM.md](docs/CROSS_PLATFORM.md)。

@@ -11,9 +11,31 @@ OpenXLSX / pugixml / miniz 官方支持三大平台。差异集中在**构建与
 | 模块文件名 | `openxlsx.so` | `openxlsx.so` | `openxlsx.dll` |
 | Lua 符号解析 | 解释器导出符号（不链接 liblua） | 链接器 `-undefined dynamic_lookup` + 解释器 | **必须链接 Lua 导入库**（DLL 不允许未定义符号） |
 | 本工程默认 | `OX_LINK_LUA=OFF` | `OX_LINK_LUA=OFF` | `OX_LINK_LUA=ON` |
-| Lua 安装建议 | 源码 `make posix` 或发行版包 | `brew install lua` | MSYS2 `mingw-w64-x86_64-lua`、vcpkg、或源码 `make mingw` |
+| Lua 安装建议 | 源码 `make linux` 或发行版包 | `brew install lua` | MSYS2 `mingw-w64-x86_64-lua`、vcpkg、或源码 `make mingw` |
 | 依赖构建 | `scripts/bootstrap.sh` | 同左（系统 bash 3.2 即可） | 同左（MSYS2/Git-Bash 中运行） |
-| 验证状态 | ✅ 本机全量测试（320 项断言） | ⚠️ 未实测（无 macOS 机器），CI 工作流已提供 | ⚠️ 交叉编译已验证产出 `openxlsx.dll`；运行需真机/CI |
+| 验证状态 | ✅ 本机 + CI | ✅ **CI 真机 320 项全绿** | ✅ **CI 真机 320 项全绿** |
+
+## CI 验证结果（三平台真机）
+
+`.github/workflows/ci.yml` 在 GitHub 托管的真实机器上构建并运行全套测试：
+
+| 平台 | runner | 结果 |
+|---|---|---|
+| Linux | `ubuntu-latest` + GCC | ✅ 320 项断言 + LibreOffice 回读校验 |
+| macOS | `macos-latest` + AppleClang 21 | ✅ 320 项断言 |
+| Windows | `windows-latest` + MSYS2 MinGW-w64（GCC 14） | ✅ 320 项断言（`openxlsx.dll` 链接 `lua55.dll` 运行） |
+
+运行记录：<https://github.com/yangqingbzhp-commits/lua-openxlsx/actions/workflows/ci.yml>
+
+### CI 上踩过的平台坑（均已修复）
+
+| 现象 | 原因 | 修复 |
+|---|---|---|
+| Linux：`dynamic libraries not enabled` | Lua 用 `posix` 目标编译，未定义 `LUA_USE_DLOPEN` | 改用 `make -C src linux`（`LUA_USE_LINUX` = POSIX + DLOPEN） |
+| macOS：miniz 配置报 `cmake_minimum_required` 错误 | 新版 CMake（≥4）不再兼容 `< 3.5` 的 miniz | bootstrap 传 `-DCMAKE_POLICY_VERSION_MINIMUM=3.5` |
+| Windows：`make: command not found` | MSYS2 工具链提供的是 `mingw32-make` | CI 改用 `mingw32-make`；MSYS2 用户也可 `pacman -S make` |
+| Windows：`tar: Cannot connect to D: resolve failed` | MSYS2 的 `tar` 是 GNU tar，把 `D:/...` 当远程主机 | 优先用 `unzip`；回退到 `%SystemRoot%\System32\tar.exe`（Windows 自带 bsdtar） |
+| Windows：Lua 读不到 `/d/...` 路径 | Lua 是原生 Windows 程序，不认 MSYS 路径；环境变量不会被自动转换 | `run_tests.sh` 用 `cygpath -m` 转换 `BUILD`/`OX_TEST_OUT`/`OX_TEST_DIR` |
 
 ## Linux
 
