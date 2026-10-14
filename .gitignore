@@ -1,0 +1,13 @@
+# build artifacts
+build/
+build-asan/
+build-*/
+# dependencies fetched by scripts/bootstrap.sh
+third_party/
+.deps/
+.cache/
+# editor/OS noise
+*.o
+*.so
+*.swp
+.DS_Store

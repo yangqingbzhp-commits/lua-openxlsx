@@ -1,0 +1,1028 @@
+## IZipArchive.hpp  [NOT exposed to Lua: internal infrastructure]
+### IZipArchive (4 public members)
+  - IZipArchive
+  - operator=
+  - operatorbool
+  - ~IZipArchive
+
+## XLCell.hpp
+### XLCell (15 public members)
+  - XLCell
+  - cellReference
+  - clear
+  - copyFrom
+  - empty
+  - formula
+  - getString
+  - hasFormula
+  - offset
+  - operator=
+  - operatorbool
+  - print
+  - setCellFormat
+  - value
+  - ~XLCell
+### XLCellAssignable (2 public members)
+  - XLCellAssignable
+  - operator=
+
+## XLCellIterator.hpp
+### XLCellIterator (11 public members)
+  - XLCellIterator
+  - address
+  - cellExists
+  - endReached
+  - operator!=
+  - operator*
+  - operator++
+  - operator->
+  - operator=
+  - operator==
+  - ~XLCellIterator
+
+## XLCellRange.hpp
+### XLCellRange (12 public members)
+  - XLCellRange
+  - address
+  - begin
+  - bottomRight
+  - clear
+  - end
+  - fetchColumnStyles
+  - numColumns
+  - numRows
+  - operator=
+  - topLeft
+  - ~XLCellRange
+
+## XLCellReference.hpp
+### XLCellReference (17 public members)
+  - XLCellReference
+  - address
+  - column
+  - columnAsNumber
+  - columnAsString
+  - coordinatesFromAddress
+  - operator++
+  - operator--
+  - operator=
+  - row
+  - rowAsNumber
+  - rowAsString
+  - setAddress
+  - setColumn
+  - setRow
+  - setRowAndColumn
+  - ~XLCellReference
+
+## XLCellValue.hpp
+### XLCellValue (6 public members)
+  - XLCellValue
+  - operator=
+  - setError
+  - type
+  - typeAsString
+  - ~XLCellValue
+### XLCellValueProxy (14 public members)
+  - XLCellValueProxy
+  - getValue
+  - operator=
+  - operatorXLCellValue
+  - setBoolean
+  - setError
+  - setFloat
+  - setInteger
+  - setString
+  - setStringIndex
+  - stringIndex
+  - type
+  - typeAsString
+  - ~XLCellValueProxy
+
+## XLColor.hpp
+### XLColor (9 public members)
+  - XLColor
+  - alpha
+  - blue
+  - green
+  - hex
+  - operator=
+  - red
+  - set
+  - ~XLColor
+
+## XLColumn.hpp
+### XLColumn (10 public members)
+  - XLColumn
+  - columnNode
+  - format
+  - isHidden
+  - operator=
+  - setFormat
+  - setHidden
+  - setWidth
+  - width
+  - ~XLColumn
+
+## XLCommandQuery.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLCommand (1 public members)
+  - XLCommand
+### XLQuery (1 public members)
+  - XLQuery
+
+## XLComments.hpp
+### XLComment (9 public members)
+  - XLComment
+  - authorId
+  - operator=
+  - ref
+  - setAuthorId
+  - setText
+  - text
+  - valid
+  - ~XLComment
+### XLComments (15 public members)
+  - XLComments
+  - addAuthor
+  - author
+  - authorCount
+  - authorId
+  - count
+  - deleteAuthor
+  - deleteComment
+  - get
+  - operator=
+  - print
+  - set
+  - setVmlDrawing
+  - shape
+  - ~XLComments
+
+## XLContentTypes.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLContentItem (5 public members)
+  - XLContentItem
+  - operator=
+  - path
+  - type
+  - ~XLContentItem
+### XLContentTypes (7 public members)
+  - XLContentTypes
+  - addOverride
+  - contentItem
+  - deleteOverride
+  - getContentItems
+  - operator=
+  - ~XLContentTypes
+
+## XLDateTime.hpp
+### XLDateTime (5 public members)
+  - XLDateTime
+  - operator=
+  - serial
+  - tm
+  - ~XLDateTime
+
+## XLDocument.hpp
+### XLDocument (32 public members)
+  - XLDocument
+  - close
+  - create
+  - deleteProperty
+  - execCommand
+  - execQuery
+  - hasSheetComments
+  - hasSheetRelationships
+  - hasSheetTables
+  - hasSheetVmlDrawing
+  - isOpen
+  - name
+  - open
+  - operator=
+  - operatorbool
+  - path
+  - property
+  - save
+  - saveAs
+  - setProperty
+  - setSavingDeclaration
+  - sharedStrings
+  - sheetComments
+  - sheetRelationships
+  - sheetTables
+  - sheetVmlDrawing
+  - showWarnings
+  - styles
+  - suppressWarnings
+  - validateSheetName
+  - workbook
+  - ~XLDocument
+
+## XLDrawing.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLShapeClientData (21 public members)
+  - XLShapeClientData
+  - anchor
+  - autoFill
+  - column
+  - moveWithCells
+  - objectType
+  - operator=
+  - row
+  - setAnchor
+  - setAutoFill
+  - setColumn
+  - setMoveWithCells
+  - setObjectType
+  - setRow
+  - setSizeWithCells
+  - setTextHAlign
+  - setTextVAlign
+  - sizeWithCells
+  - textHAlign
+  - textVAlign
+  - ~XLShapeClientData
+### XLShapeStyle (21 public members)
+  - XLShapeStyle
+  - height
+  - hidden
+  - hide
+  - marginLeft
+  - marginTop
+  - msoWrapStyle
+  - position
+  - raw
+  - setHeight
+  - setMarginLeft
+  - setMarginTop
+  - setMsoWrapStyle
+  - setRaw
+  - setVTextAnchor
+  - setWidth
+  - show
+  - vTextAnchor
+  - visible
+  - width
+  - ~XLShapeStyle
+### XLShape (15 public members)
+  - XLShape
+  - allowInCell
+  - clientData
+  - fillColor
+  - operator=
+  - setAllowInCell
+  - setFillColor
+  - setStroked
+  - setStyle
+  - setType
+  - shapeId
+  - stroked
+  - style
+  - type
+  - ~XLShape
+### XLVmlDrawing (9 public members)
+  - XLVmlDrawing
+  - createShape
+  - deleteShape
+  - operator=
+  - print
+  - shape
+  - shapeCount
+  - shapeNode
+  - ~XLVmlDrawing
+
+## XLException.hpp
+### XLException (1 public members)
+  - XLException
+### XLOverflowError (1 public members)
+  - XLOverflowError
+### XLValueTypeError (1 public members)
+  - XLValueTypeError
+### XLCellAddressError (1 public members)
+  - XLCellAddressError
+### XLInputError (1 public members)
+  - XLInputError
+### XLInternalError (1 public members)
+  - XLInternalError
+### XLPropertyError (1 public members)
+  - XLPropertyError
+### XLSheetError (1 public members)
+  - XLSheetError
+### XLDateTimeError (1 public members)
+  - XLDateTimeError
+### XLFormulaError (1 public members)
+  - XLFormulaError
+
+## XLFormula.hpp
+### XLFormula (5 public members)
+  - XLFormula
+  - clear
+  - operator=
+  - operatorstd::string
+  - ~XLFormula
+### XLFormulaProxy (5 public members)
+  - clear
+  - operator=
+  - operatorXLFormula
+  - operatorstd::string
+  - ~XLFormulaProxy
+
+## XLIterator.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLReverseRange (1 public members)
+  - XLReverseRange
+
+## XLMergeCells.hpp
+### XLMergeCells (13 public members)
+  - XLMergeCells
+  - count
+  - deleteAll
+  - deleteMerge
+  - findMerge
+  - findMergeByCell
+  - merge
+  - mergeExists
+  - operator=
+  - operator[]
+  - print
+  - valid
+  - ~XLMergeCells
+
+## XLProperties.hpp
+### XLProperties (6 public members)
+  - XLProperties
+  - deleteProperty
+  - operator=
+  - property
+  - setProperty
+  - ~XLProperties
+### XLAppProperties (17 public members)
+  - XLAppProperties
+  - addHeadingPair
+  - addSheetName
+  - alignWorksheets
+  - appendSheetName
+  - deleteHeadingPair
+  - deleteProperty
+  - deleteSheetName
+  - incrementSheetCount
+  - insertSheetName
+  - operator=
+  - prependSheetName
+  - property
+  - setHeadingPair
+  - setProperty
+  - setSheetName
+  - ~XLAppProperties
+
+## XLRelationships.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLRelationshipItem (7 public members)
+  - XLRelationshipItem
+  - empty
+  - id
+  - operator=
+  - target
+  - type
+  - ~XLRelationshipItem
+### XLRelationships (11 public members)
+  - XLRelationships
+  - addRelationship
+  - deleteRelationship
+  - idExists
+  - operator=
+  - print
+  - relationshipById
+  - relationshipByTarget
+  - relationships
+  - targetExists
+  - ~XLRelationships
+
+## XLRow.hpp
+### XLRow (18 public members)
+  - XLRow
+  - cellCount
+  - cells
+  - descent
+  - empty
+  - findCell
+  - format
+  - height
+  - isHidden
+  - operator=
+  - operatorbool
+  - rowNumber
+  - setDescent
+  - setFormat
+  - setHeight
+  - setHidden
+  - values
+  - ~XLRow
+### XLRowIterator (11 public members)
+  - XLRowIterator
+  - endReached
+  - operator!=
+  - operator*
+  - operator++
+  - operator->
+  - operator=
+  - operator==
+  - operatorbool
+  - rowExists
+  - ~XLRowIterator
+### XLRowReverseIterator (11 public members)
+  - XLRowReverseIterator
+  - endReached
+  - operator!=
+  - operator*
+  - operator++
+  - operator->
+  - operator=
+  - operator==
+  - operatorbool
+  - rowExists
+  - ~XLRowReverseIterator
+### XLRowRange (8 public members)
+  - XLRowRange
+  - begin
+  - end
+  - operator=
+  - rbegin
+  - rend
+  - rowCount
+  - ~XLRowRange
+
+## XLRowData.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLRowDataIterator (8 public members)
+  - XLRowDataIterator
+  - operator!=
+  - operator*
+  - operator++
+  - operator->
+  - operator=
+  - operator==
+  - ~XLRowDataIterator
+### XLRowDataRange (6 public members)
+  - XLRowDataRange
+  - begin
+  - end
+  - operator=
+  - size
+  - ~XLRowDataRange
+### XLRowDataProxy (5 public members)
+  - XLRowDataProxy
+  - operator=
+  - operatorstd::deque<XLCellValue>
+  - operatorstd::list<XLCellValue>
+  - ~XLRowDataProxy
+
+## XLSharedStrings.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLSharedStrings (9 public members)
+  - XLSharedStrings
+  - appendString
+  - clearString
+  - getString
+  - operator=
+  - print
+  - stringCount
+  - stringExists
+  - ~XLSharedStrings
+
+## XLSheet.hpp
+### XLSheetBase (3 public members)
+  - XLSheetBase
+  - operator=
+  - ~XLSheetBase
+### XLCfRule (40 public members)
+  - Operator
+  - XLCfRule
+  - aboveAverage
+  - bottom
+  - colorScale
+  - dataBar
+  - dxfId
+  - empty
+  - equalAverage
+  - extLst
+  - formula
+  - iconSet
+  - operator=
+  - percent
+  - priority
+  - rank
+  - setAboveAverage
+  - setBottom
+  - setColorScale
+  - setDataBar
+  - setDxfId
+  - setEqualAverage
+  - setExtLst
+  - setFormula
+  - setIconSet
+  - setOperator
+  - setPercent
+  - setRank
+  - setStdDev
+  - setStopIfTrue
+  - setText
+  - setTimePeriod
+  - setType
+  - stdDev
+  - stopIfTrue
+  - summary
+  - text
+  - timePeriod
+  - type
+  - ~XLCfRule
+### XLCfRules (11 public members)
+  - XLCfRules
+  - cfRuleByIndex
+  - count
+  - empty
+  - maxPriorityValue
+  - operator=
+  - operator[]
+  - renumberPriorities
+  - setPriority
+  - summary
+  - ~XLCfRules
+### XLConditionalFormat (9 public members)
+  - XLConditionalFormat
+  - cfRules
+  - empty
+  - extLst
+  - operator=
+  - setExtLst
+  - sqref
+  - summary
+  - ~XLConditionalFormat
+### XLConditionalFormats (8 public members)
+  - XLConditionalFormats
+  - conditionalFormatByIndex
+  - count
+  - empty
+  - operator=
+  - operator[]
+  - summary
+  - ~XLConditionalFormats
+### XLWorksheet (55 public members)
+  - XLWorksheet
+  - allowDeleteColumns
+  - allowDeleteRows
+  - allowInsertColumns
+  - allowInsertRows
+  - allowSelectLockedCells
+  - allowSelectUnlockedCells
+  - cell
+  - clearPassword
+  - clearSheetProtection
+  - column
+  - columnCount
+  - comments
+  - conditionalFormats
+  - deleteColumnsAllowed
+  - deleteRow
+  - deleteRowsAllowed
+  - denyInsertColumns
+  - findCell
+  - getColumnFormat
+  - getRowFormat
+  - hasComments
+  - hasRelationships
+  - hasTables
+  - hasVmlDrawing
+  - insertColumnsAllowed
+  - insertRowsAllowed
+  - lastCell
+  - mergeCells
+  - merges
+  - objectsProtected
+  - operator=
+  - passwordHash
+  - passwordIsSet
+  - protectObjects
+  - protectScenarios
+  - protectSheet
+  - range
+  - row
+  - rowCount
+  - rows
+  - scenariosProtected
+  - selectLockedCellsAllowed
+  - selectUnlockedCellsAllowed
+  - setColumnFormat
+  - setDimension
+  - setPassword
+  - setRowFormat
+  - sheetProtected
+  - sheetProtectionSummary
+  - tables
+  - unmergeCells
+  - updateSheetName
+  - vmlDrawing
+  - ~XLWorksheet
+### XLChartsheet (3 public members)
+  - XLChartsheet
+  - operator=
+  - ~XLChartsheet
+### XLSheet (17 public members)
+  - XLSheet
+  - color
+  - index
+  - isActive
+  - isSelected
+  - name
+  - operator=
+  - operatorXLChartsheet
+  - print
+  - setActive
+  - setColor
+  - setIndex
+  - setName
+  - setSelected
+  - setVisibility
+  - visibility
+  - ~XLSheet
+
+## XLStyles.hpp
+### XLNumberFormat (8 public members)
+  - XLNumberFormat
+  - formatCode
+  - numberFormatId
+  - operator=
+  - setFormatCode
+  - setNumberFormatId
+  - summary
+  - ~XLNumberFormat
+### XLNumberFormats (8 public members)
+  - XLNumberFormats
+  - count
+  - create
+  - numberFormatByIndex
+  - numberFormatIdFromIndex
+  - operator=
+  - operator[]
+  - ~XLNumberFormats
+### XLFont (34 public members)
+  - XLFont
+  - bold
+  - condense
+  - extend
+  - fontCharset
+  - fontColor
+  - fontFamily
+  - fontName
+  - fontSize
+  - italic
+  - operator=
+  - outline
+  - scheme
+  - setBold
+  - setCondense
+  - setExtend
+  - setFontCharset
+  - setFontColor
+  - setFontFamily
+  - setFontName
+  - setFontSize
+  - setItalic
+  - setOutline
+  - setScheme
+  - setShadow
+  - setStrikethrough
+  - setUnderline
+  - setVertAlign
+  - shadow
+  - strikethrough
+  - summary
+  - underline
+  - vertAlign
+  - ~XLFont
+### XLFonts (6 public members)
+  - XLFonts
+  - count
+  - fontByIndex
+  - operator=
+  - operator[]
+  - ~XLFonts
+### XLDataBarColor (14 public members)
+  - XLDataBarColor
+  - automatic
+  - indexed
+  - operator=
+  - rgb
+  - set
+  - setAutomatic
+  - setIndexed
+  - setRgb
+  - setTheme
+  - summary
+  - theme
+  - tint
+  - ~XLDataBarColor
+### XLGradientStop (7 public members)
+  - XLGradientStop
+  - color
+  - operator=
+  - position
+  - setPosition
+  - summary
+  - ~XLGradientStop
+### XLGradientStops (7 public members)
+  - XLGradientStops
+  - count
+  - operator=
+  - operator[]
+  - stopByIndex
+  - summary
+  - ~XLGradientStops
+### XLFill (25 public members)
+  - XLFill
+  - backgroundColor
+  - bottom
+  - color
+  - degree
+  - fillType
+  - gradientType
+  - left
+  - operator=
+  - patternType
+  - right
+  - setBackgroundColor
+  - setBottom
+  - setColor
+  - setDegree
+  - setFillType
+  - setGradientType
+  - setLeft
+  - setPatternType
+  - setRight
+  - setTop
+  - stops
+  - summary
+  - top
+  - ~XLFill
+### XLFills (6 public members)
+  - XLFills
+  - count
+  - fillByIndex
+  - operator=
+  - operator[]
+  - ~XLFills
+### XLLine (7 public members)
+  - XLLine
+  - color
+  - operator=
+  - operatorbool
+  - style
+  - summary
+  - ~XLLine
+### XLBorder (25 public members)
+  - XLBorder
+  - bottom
+  - diagonal
+  - diagonalDown
+  - diagonalUp
+  - horizontal
+  - left
+  - operator=
+  - outline
+  - right
+  - setBottom
+  - setDiagonal
+  - setDiagonalDown
+  - setDiagonalUp
+  - setHorizontal
+  - setLeft
+  - setLine
+  - setOutline
+  - setRight
+  - setTop
+  - setVertical
+  - summary
+  - top
+  - vertical
+  - ~XLBorder
+### XLBorders (6 public members)
+  - XLBorders
+  - borderByIndex
+  - count
+  - operator=
+  - operator[]
+  - ~XLBorders
+### XLAlignment (22 public members)
+  - XLAlignment
+  - horizontal
+  - indent
+  - justifyLastLine
+  - operator=
+  - readingOrder
+  - relativeIndent
+  - setHorizontal
+  - setIndent
+  - setJustifyLastLine
+  - setReadingOrder
+  - setRelativeIndent
+  - setShrinkToFit
+  - setTextRotation
+  - setVertical
+  - setWrapText
+  - shrinkToFit
+  - summary
+  - textRotation
+  - vertical
+  - wrapText
+  - ~XLAlignment
+### XLCellFormat (36 public members)
+  - XLCellFormat
+  - alignment
+  - applyAlignment
+  - applyBorder
+  - applyFill
+  - applyFont
+  - applyNumberFormat
+  - applyProtection
+  - borderIndex
+  - extLst
+  - fillIndex
+  - fontIndex
+  - hidden
+  - locked
+  - numberFormatId
+  - operator=
+  - pivotButton
+  - quotePrefix
+  - setApplyAlignment
+  - setApplyBorder
+  - setApplyFill
+  - setApplyFont
+  - setApplyNumberFormat
+  - setApplyProtection
+  - setBorderIndex
+  - setExtLst
+  - setFillIndex
+  - setFontIndex
+  - setHidden
+  - setLocked
+  - setPivotButton
+  - setQuotePrefix
+  - setXfId
+  - summary
+  - xfId
+  - ~XLCellFormat
+### XLCellFormats (6 public members)
+  - XLCellFormats
+  - cellFormatByIndex
+  - count
+  - operator=
+  - operator[]
+  - ~XLCellFormats
+### XLCellStyle (18 public members)
+  - XLCellStyle
+  - builtinId
+  - customBuiltin
+  - empty
+  - extLst
+  - hidden
+  - name
+  - operator=
+  - outlineStyle
+  - setBuiltinId
+  - setCustomBuiltin
+  - setExtLst
+  - setHidden
+  - setOutlineStyle
+  - setXfId
+  - summary
+  - xfId
+  - ~XLCellStyle
+### XLCellStyles (6 public members)
+  - XLCellStyles
+  - cellStyleByIndex
+  - count
+  - operator=
+  - operator[]
+  - ~XLCellStyles
+### XLDiffCellFormat (11 public members)
+  - XLDiffCellFormat
+  - alignment
+  - border
+  - empty
+  - extLst
+  - fill
+  - font
+  - numFmt
+  - operator=
+  - summary
+  - ~XLDiffCellFormat
+### XLDiffCellFormats (6 public members)
+  - XLDiffCellFormats
+  - count
+  - diffCellFormatByIndex
+  - operator=
+  - operator[]
+  - ~XLDiffCellFormats
+### XLStyles (11 public members)
+  - XLStyles
+  - borders
+  - cellFormats
+  - cellStyleFormats
+  - cellStyles
+  - diffCellFormats
+  - fills
+  - fonts
+  - numberFormats
+  - operator=
+  - ~XLStyles
+
+## XLTables.hpp
+### XLTables (4 public members)
+  - XLTables
+  - operator=
+  - print
+  - ~XLTables
+
+## XLWorkbook.hpp
+### XLWorkbook (25 public members)
+  - XLWorkbook
+  - addWorksheet
+  - chartsheet
+  - chartsheetCount
+  - chartsheetExists
+  - chartsheetNames
+  - cloneSheet
+  - deleteNamedRanges
+  - deleteSheet
+  - indexOfSheet
+  - operator=
+  - print
+  - setFullCalculationOnLoad
+  - setSheetIndex
+  - sheet
+  - sheetCount
+  - sheetExists
+  - sheetNames
+  - typeOfSheet
+  - updateSheetReferences
+  - worksheet
+  - worksheetCount
+  - worksheetExists
+  - worksheetNames
+  - ~XLWorkbook
+
+## XLXmlData.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLXmlSavingDeclaration (4 public members)
+  - XLXmlSavingDeclaration
+  - operator=
+  - version
+  - ~XLXmlSavingDeclaration
+### XLXmlData (12 public members)
+  - XLXmlData
+  - empty
+  - getParentDoc
+  - getRawData
+  - getXmlDocument
+  - getXmlID
+  - getXmlPath
+  - getXmlType
+  - operator=
+  - setRawData
+  - valid
+  - ~XLXmlData
+
+## XLXmlFile.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLXmlFile (4 public members)
+  - XLXmlFile
+  - operator=
+  - valid
+  - ~XLXmlFile
+
+## XLXmlParser.hpp  [NOT exposed to Lua: internal infrastructure]
+### OpenXLSX_xml_node (8 public members)
+  - OpenXLSX_xml_node
+  - child_count_of_type
+  - last_child_of_type
+  - name
+  - namespaced_name_char
+  - namespaced_name_shared_ptr
+  - next_sibling_of_type
+  - previous_sibling_of_type
+
+## XLZipArchive.hpp  [NOT exposed to Lua: internal infrastructure]
+### XLZipArchive (18 public members)
+  - XLZipArchive
+  - addEntry
+  - addEntryAndCommit
+  - close
+  - commitChanges
+  - deleteEntry
+  - entryCount
+  - entryName
+  - getEntry
+  - hasEntry
+  - isOpen
+  - isValid
+  - open
+  - operator=
+  - operatorbool
+  - save
+  - usesZippy
+  - ~XLZipArchive
+
+# total public members listed: 882
